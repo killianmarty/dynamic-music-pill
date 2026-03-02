@@ -550,8 +550,6 @@ class ExpandedPlayer extends St.Widget {
 
         this._box.add_child(controlsRow);
 
-        this._box.add_child(controlsRow);
-
         this._box.connectObject('enter-event', () => {
             if (this._leaveHideTimeoutId) {
                 GLib.source_remove(this._leaveHideTimeoutId);
