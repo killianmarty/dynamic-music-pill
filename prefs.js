@@ -241,8 +241,8 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         // Mouse Actions Group
         const actionGroup = new Adw.PreferencesGroup({ title: _('Mouse Actions') });
         const actionModel = new Gtk.StringList();
-        const actionNames = ["None", "Play / Pause", "Next Track", "Previous Track", "Open Player App", "Open Menu", "Select Player"];
-        const actionValues = ['none', 'play_pause', 'next', 'previous', 'open_app', 'toggle_menu', 'open_player_menu'];
+        const actionNames = ["None", "Play / Pause", "Next Track", "Previous Track", "Open Player App", "Open Menu", "Select Player", "Open Settings", "Close Player App"];
+        const actionValues = ['none', 'play_pause', 'next', 'previous', 'open_app', 'toggle_menu', 'open_player_menu', 'open_settings', 'close_app'];
         
         actionNames.forEach(name => actionModel.append(_(name)));
 
