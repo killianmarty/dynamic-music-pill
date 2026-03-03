@@ -134,7 +134,19 @@
       <default>'255,255,255'</default>
       <summary>Custom Text Color (R,G,B)</summary>
     </key>
-
+    <key name="app-name-mapping" type="s">
+      <default>''</default>
+      <summary>Custom App Name Mapping</summary>
+      <description>Manually map players that don't open.</description>
+    </key>
+    <key name="lyric-fade-enable" type="b">
+      <default>true</default>
+      <summary>Enable lyric fade-in effect</summary>
+    </key>
+    <key name="lyric-fade-duration" type="i">
+      <default>250</default>
+      <summary>Fade-in duration in ms</summary>
+    </key>
     <key name="tablet-mode" type="i">
       <default>0</default>
       <summary>Tablet Controls Mode</summary>
