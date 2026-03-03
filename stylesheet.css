@@ -79,14 +79,14 @@
     font-size: 9pt;
     font-feature-settings: "tnum";
     color: rgba(255, 255, 255, 0.6);
-    min-width: 45px;
+    min-width: 32px;
 }
 
 .progress-slider-bg {
     height: 6px;
     background-color: rgba(255, 255, 255, 0.15);
     border-radius: 3px;
-    margin: 0 10px;
+    margin: 0 8px;
 }
 
 .progress-slider-fill {
