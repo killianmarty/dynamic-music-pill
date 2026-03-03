@@ -1175,13 +1175,36 @@ class ExpandedPlayer extends St.Widget {
 
         let showVinyl = this._settings.get_boolean('popup-show-vinyl');
         if (!artUrl || !showVinyl) {
-            this._vinylBin.show();
+            this._vinylBin.hide();
             this._vinyl.hide();
             this._stopVinyl();
             this._currentArtUrl = null;
+            
+            if (this._titleLabel && this._titleLabel.get_parent()) {
+                let infoBox = this._titleLabel.get_parent();
+                infoBox.x_expand = false; 
+                infoBox.set_style('min-width: 0px; margin-left: 0px; margin-right: 15px;'); 
+                
+                let topRow = infoBox.get_parent();
+                if (topRow) {
+                    topRow.x_align = Clutter.ActorAlign.CENTER;
+                }
+            }
         } else {
             this._vinylBin.show();
             this._vinyl.show();
+            
+            if (this._titleLabel && this._titleLabel.get_parent()) {
+                let infoBox = this._titleLabel.get_parent();
+                infoBox.x_expand = true; 
+                infoBox.set_style('min-width: 0px; margin-left: 15px; margin-right: 0px;');
+                
+                let topRow = infoBox.get_parent();
+                if (topRow) {
+                    topRow.x_align = Clutter.ActorAlign.FILL;
+                }
+            }
+            
             let isSquare = this._settings.get_boolean('popup-vinyl-square');
             let radius = isSquare ? 12 : 50;
             let newClass = isSquare ? 'vinyl-container-square' : 'vinyl-container';
