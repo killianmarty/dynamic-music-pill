@@ -89,8 +89,8 @@ class ScrollLabel extends St.Widget {
         this._text = "";
         this._gameMode = false;
         this._isScrolling = false;
-	this._container = new PixelSnappedBox({ x_expand: true, y_expand: true, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER });
-	this._container.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
+        this._container = new PixelSnappedBox({ x_expand: true, y_expand: true, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER });
+        this._container.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
         this.add_child(this._container);
 
         this._label1 = new St.Label({ style_class: styleClass, y_align: Clutter.ActorAlign.CENTER });
@@ -108,7 +108,7 @@ class ScrollLabel extends St.Widget {
         this._settings.connectObject('changed::scroll-text', () => this.setText(this._text, true), this);
 
         this.connectObject('notify::allocation', () => {
-            if (this._resizeTimer) { GLib.source_remove(this._resizeTimer); this._resizeTimer = null; }
+            if (this._resizeTimer) { GLib.Source.remove(this._resizeTimer); this._resizeTimer = null; }
             this._resizeTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
                 this._resizeTimer = null;
                 if (this.has_allocation()) this._checkResize();
@@ -132,12 +132,12 @@ class ScrollLabel extends St.Widget {
         if (this._label2) this._label2.set_style(css);
     }
 
-	_cleanup() {
-	    this._stopAnimation();
-	    if (this._resizeTimer) { GLib.source_remove(this._resizeTimer); this._resizeTimer = null; }
-	    if (this._measureTimeout) { GLib.source_remove(this._measureTimeout); this._measureTimeout = null; }
-	    if (this._idleResizeId) { GLib.source_remove(this._idleResizeId); this._idleResizeId = null; }
-	}
+    _cleanup() {
+        this._stopAnimation();
+        if (this._resizeTimer) { GLib.Source.remove(this._resizeTimer); this._resizeTimer = null; }
+        if (this._measureTimeout) { GLib.Source.remove(this._measureTimeout); this._measureTimeout = null; }
+        if (this._idleResizeId) { GLib.Source.remove(this._idleResizeId); this._idleResizeId = null; }
+    }
 
     setGameMode(active) {
         this._gameMode = active;
@@ -146,60 +146,84 @@ class ScrollLabel extends St.Widget {
     }
 
     _checkResize() {
-    if (!this._text || this._gameMode) return;
-    
-    if (this._idleResizeId) { GLib.source_remove(this._idleResizeId); this._idleResizeId = null; }
-    
-    this._idleResizeId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-        this._idleResizeId = null;
-        if (!this || (this.is_finalized && this.is_finalized()) || !this.get_parent()) 
-            return GLib.SOURCE_REMOVE;
-        if (!this.get_parent()) 
-            return GLib.SOURCE_REMOVE;
-
-	// The lyrics have finished scrolling, do not trigger the scroll again
-	if (this._lyricFinished) return GLib.SOURCE_REMOVE;
-		
-        let boxWidth = this.get_allocation_box().get_width();
-        if (boxWidth <= 1) return GLib.SOURCE_REMOVE;
+        if (!this._text || this._gameMode) return;
         
+        if (this._idleResizeId) { GLib.Source.remove(this._idleResizeId); this._idleResizeId = null; }
         
-        this._label1.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
-        let textWidth = this._label1.get_preferred_width(-1)[1];
-	let needsScroll = (textWidth > boxWidth) && (this._settings.get_boolean('scroll-text') || this._lyricTime > 0);
-	this._container.x_align = needsScroll ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER;
-        let isScrolling = (this._scrollTimer != null) || this._isScrolling;
+        this._idleResizeId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            this._idleResizeId = null;
+            if (!this || (this.is_finalized && this.is_finalized()) || !this.get_parent()) 
+                return GLib.SOURCE_REMOVE;
 
-		if (needsScroll && !isScrolling) {
-            if (this._lyricTime > 0) this._startLyricScroll(textWidth);
-            else this._startInfiniteScroll(textWidth);
-        } else if (!needsScroll && isScrolling) {
-            this._stopAnimation();
-            this._label2.hide();
-            this._separator.hide();
-            this._label1.clutter_text.ellipsize = (textWidth > boxWidth) ? Pango.EllipsizeMode.END : Pango.EllipsizeMode.NONE;
-        }
-        return GLib.SOURCE_REMOVE;
-    });
-}
+            if (this._lyricFinished) return GLib.SOURCE_REMOVE;
+            
+            let boxWidth = this.get_allocation_box().get_width();
+            if (boxWidth <= 1) return GLib.SOURCE_REMOVE;
+            
+            this._label1.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+            let textWidth = this._label1.get_preferred_width(-1)[1];
+            
+            let needsScroll = (textWidth > boxWidth + 5) && (this._settings.get_boolean('scroll-text') || this._lyricTime > 0);
+            let isScrolling = (this._scrollTimer != null) || this._isScrolling;
+
+            if (needsScroll && !isScrolling) {
+                this._container.x_align = Clutter.ActorAlign.START;
+                if (this._lyricTime > 0) this._startLyricScroll(textWidth);
+                else this._startInfiniteScroll(textWidth);
+            } else if (!needsScroll && isScrolling) {
+                this._stopAnimation(true);
+                this._container.x_align = Clutter.ActorAlign.CENTER;
+                this._label2.hide();
+                this._separator.hide();
+            } else if (!needsScroll) {
+                this._container.x_align = Clutter.ActorAlign.CENTER;
+            }
+            
+            return GLib.SOURCE_REMOVE;
+        });
+    }
 
     setText(text, force = false, lyricTime = 0) {
         if (!force && this._text === text) return;
         this._text = text || "";
-		this._lyricTime = lyricTime;  // Lyric duration (seconds)
-        this._lyricFinished = false;   // New lyrics, reset mark
-        this._stopAnimation();
+        this._lyricTime = lyricTime;
+        this._lyricFinished = false;  
+        
+        this._stopAnimation(true);
+        this._container.x_align = Clutter.ActorAlign.CENTER;
+
+        let fadeEnabled = false;
+        let fadeDuration = 250;
+        if (this._settings) {
+            fadeEnabled = this._settings.get_boolean('lyric-fade-enable');
+            fadeDuration = this._settings.get_int('lyric-fade-duration');
+        }
+
+        if (lyricTime > 0 && fadeEnabled) {
+            this._label1.remove_transition('opacity');
+            this._label1.opacity = 0;
+            this._label1.ease({
+                opacity: 255,
+                duration: fadeDuration,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD
+            });
+        } else {
+            this._label1.remove_transition('opacity');
+            this._label1.opacity = 255;
+        }
+
         this._label1.text = this._text;
         this._label2.text = this._text;
         this._label2.hide();
         this._separator.hide();
 
-        if (!this._settings.get_boolean('scroll-text')&& !this._lyricTime) {
-            this._label1.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+        this._label1.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+
+        if (!this._settings.get_boolean('scroll-text') && !this._lyricTime) {
             return;
         }
-        this._label1.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
-        if (this._measureTimeout) { GLib.source_remove(this._measureTimeout); this._measureTimeout = null; }
+
+        if (this._measureTimeout) { GLib.Source.remove(this._measureTimeout); this._measureTimeout = null; }
         this._measureTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             this._measureTimeout = null;
             if (this.has_allocation()) this._checkOverflow();
@@ -211,30 +235,31 @@ class ScrollLabel extends St.Widget {
         this._isScrolling = false;
         this._container.remove_all_transitions();
         if (resetPosition) this._container.translation_x = 0;
-        if (this._scrollTimer) { GLib.source_remove(this._scrollTimer); this._scrollTimer = null; }
+        if (this._scrollTimer) { GLib.Source.remove(this._scrollTimer); this._scrollTimer = null; }
     }
 
     _checkOverflow() {
         if (this._gameMode || !this.get_parent()) return;
         let boxWidth = this.get_allocation_box().get_width();
         if (boxWidth <= 1) return;
+        
         let textWidth = this._label1.get_preferred_width(-1)[1];
-        let needsScroll = textWidth > boxWidth;
-        this._container.x_align = needsScroll ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER;
+        let needsScroll = textWidth > boxWidth + 5;
 
-        if (this._lyricTime > 0 && needsScroll) {
-            // Lyric mode: single scroll based on time
-            this._startLyricScroll(textWidth);
-        } else if (needsScroll && this._settings.get_boolean('scroll-text')) {
-            // Normal mode: Infinite loop scrolling
-            this._startInfiniteScroll(textWidth);
+        if (needsScroll) {
+            this._container.x_align = Clutter.ActorAlign.START;
+            if (this._lyricTime > 0) {
+                this._startLyricScroll(textWidth);
+            } else if (this._settings.get_boolean('scroll-text')) {
+                this._startInfiniteScroll(textWidth);
+            }
         } else {
-            this._label1.clutter_text.ellipsize = needsScroll ? Pango.EllipsizeMode.END : Pango.EllipsizeMode.NONE;
+            this._container.x_align = Clutter.ActorAlign.CENTER;
         }
     }
 
     _startInfiniteScroll(textWidth) {
-        this._stopAnimation();
+        this._stopAnimation(true);
         this._isScrolling = true;
         this._label2.show();
         this._separator.show();
@@ -243,7 +268,7 @@ class ScrollLabel extends St.Widget {
         
         const loop = () => {
             if (this._gameMode || !this.get_parent()) return; 
-            if (this._scrollTimer) GLib.source_remove(this._scrollTimer);
+            if (this._scrollTimer) GLib.Source.remove(this._scrollTimer);
             this._scrollTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, () => {
                 this._scrollTimer = null; 
                 if (this._gameMode || !this.get_parent()) return GLib.SOURCE_REMOVE;
@@ -260,30 +285,26 @@ class ScrollLabel extends St.Widget {
         };
         loop();
     }
-	    _startLyricScroll(textWidth) {
-        this._stopAnimation();
+    
+    _startLyricScroll(textWidth) {
+        this._stopAnimation(true);
         this._isScrolling = true;
-        // Lyric mode does not require label2 and separator, it only performs a single left-to-right scroll
         this._label2.hide();
         this._separator.hide();
 
         let boxWidth = this.get_allocation_box().get_width();
         const distance = textWidth - boxWidth;
-        if (distance <= 0) return;
+        if (distance <= 5) return;
 
         const totalDurationMs = this._lyricTime * 1000;
-        // Pause time is calculated based on the visible proportion of the container
         const pauseTime = (boxWidth / textWidth) * totalDurationMs * 0.5;
-        // Leave 10% for the end pause
         const tailTime = totalDurationMs * 0.2;
-        // Time conservation: pause + scroll + end = total duration
         const scrollDuration = totalDurationMs - pauseTime - tailTime;
 
         if (scrollDuration <= 0) return;
 
-        // Stay still and wait for a while, then start rolling
-        if (this._scrollTimer) GLib.source_remove(this._scrollTimer);
-        this._scrollTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, pauseTime, () => {
+        if (this._scrollTimer) GLib.Source.remove(this._scrollTimer);
+        this._scrollTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, Math.max(100, pauseTime), () => {
             this._scrollTimer = null;
             if (this._gameMode || !this.get_parent()) return GLib.SOURCE_REMOVE;
             this._container.ease({
@@ -291,7 +312,6 @@ class ScrollLabel extends St.Widget {
                 duration: scrollDuration,
                 mode: Clutter.AnimationMode.LINEAR,
                 onStopped: () => {
-                    // The lyrics stop at the end and wait for the next setText update
                     this._isScrolling = false;
                     this._lyricFinished = true;
                 }
@@ -316,7 +336,6 @@ class CavaVisualizer extends St.DrawingArea {
         this._colorR = 1.0; this._colorG = 1.0; this._colorB = 1.0;
         this._isPlaying = false;
         
-        // Szélesség: sávok száma * 4px
         this.set_width(this._barCount * 4);
         
         this.connect('repaint', this._onRepaint.bind(this));
@@ -391,7 +410,6 @@ class CavaVisualizer extends St.DrawingArea {
         let readSize = Math.max(4096, this._barCount * 2 * 4);
         this._stdout.read_bytes_async(readSize, GLib.PRIORITY_DEFAULT, this._cancellable, (stream, res) => {
             try {
-                // GC védelem: ha már dispose-olva lett az objektum, ne folytassuk
                 if (!this || (this.is_finalized && this.is_finalized())) return;
 
                 let gbytes = stream.read_bytes_finish(res);
@@ -571,7 +589,7 @@ class SimulatedVisualizer extends St.BoxLayout {
 
     _cleanup() {
         if (this._timerId) {
-            GLib.source_remove(this._timerId);
+            GLib.Source.remove(this._timerId);
             this._timerId = null;
         }
     }
@@ -596,11 +614,10 @@ class SimulatedVisualizer extends St.BoxLayout {
         if (this._isPlaying === playing) return;
         this._isPlaying = playing;
         this._updateBarsCss();
-        if (this._timerId) { GLib.source_remove(this._timerId); this._timerId = null; }
+        if (this._timerId) { GLib.Source.remove(this._timerId); this._timerId = null; }
 
         if (playing && this._mode !== 0) {
             this._timerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 16, () => {
-                // GC védelem:
                 if (!this || this.is_finalized && this.is_finalized() || !this.get_parent()) 
                     return GLib.SOURCE_REMOVE;
                 
@@ -880,7 +897,7 @@ class ExpandedPlayer extends St.Widget {
 
         this._box.connectObject('enter-event', () => {
             if (this._leaveHideTimeoutId) {
-                GLib.source_remove(this._leaveHideTimeoutId);
+                GLib.Source.remove(this._leaveHideTimeoutId);
                 this._leaveHideTimeoutId = null;
             }
             return Clutter.EVENT_PROPAGATE;
@@ -889,7 +906,7 @@ class ExpandedPlayer extends St.Widget {
         this._box.connectObject('leave-event', () => {
             if (this._settings.get_boolean('popup-hide-on-leave')) {
                 if (this._leaveHideTimeoutId) {
-                    GLib.source_remove(this._leaveHideTimeoutId);
+                    GLib.Source.remove(this._leaveHideTimeoutId);
                 }
                 this._leaveHideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
                     this._leaveHideTimeoutId = null;
@@ -1269,13 +1286,13 @@ class ExpandedPlayer extends St.Widget {
     }
 
     _cleanup() {
-        if (this._updateTimer) { GLib.source_remove(this._updateTimer); this._updateTimer = null; }
-        if (this._resizeDebounceId) { GLib.source_remove(this._resizeDebounceId); this._resizeDebounceId = null; }
-        if (this._leaveHideTimeoutId) { GLib.source_remove(this._leaveHideTimeoutId); this._leaveHideTimeoutId = null; }
+        if (this._updateTimer) { GLib.Source.remove(this._updateTimer); this._updateTimer = null; }
+        if (this._resizeDebounceId) { GLib.Source.remove(this._resizeDebounceId); this._resizeDebounceId = null; }
+        if (this._leaveHideTimeoutId) { GLib.Source.remove(this._leaveHideTimeoutId); this._leaveHideTimeoutId = null; }
     }
 
     _startTimer() {
-        if (this._updateTimer) GLib.source_remove(this._updateTimer);
+        if (this._updateTimer) GLib.Source.remove(this._updateTimer);
         this._updateTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             this._tick();
             return GLib.SOURCE_CONTINUE;
@@ -1284,7 +1301,7 @@ class ExpandedPlayer extends St.Widget {
     }
 
     _stopTimer() {
-        if (this._updateTimer) { GLib.source_remove(this._updateTimer); this._updateTimer = null; }
+        if (this._updateTimer) { GLib.Source.remove(this._updateTimer); this._updateTimer = null; }
     }
 
     _tick() {
@@ -1416,7 +1433,7 @@ class ExpandedPlayer extends St.Widget {
         if (!this._box || !this._controller || !this._controller._pill) return;
 
         if (this._resizeDebounceId) {
-            GLib.source_remove(this._resizeDebounceId);
+            GLib.Source.remove(this._resizeDebounceId);
             this._resizeDebounceId = null;
         }
 
@@ -1587,37 +1604,37 @@ class MusicPill extends St.Widget {
     this._nextBtn.connectObject('button-press-event', () => Clutter.EVENT_STOP, this);
 
     this._prevBtn.connectObject('button-release-event', () => { 
-        if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+        if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
         this._controller.previous(); return Clutter.EVENT_STOP; 
     }, this);
     this._prevBtn.connectObject('touch-event', (actor, event) => {
         if (event.type() === Clutter.EventType.TOUCH_BEGIN) return Clutter.EVENT_STOP;
         if (event.type() === Clutter.EventType.TOUCH_END) {
-            if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+            if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
             this._controller.previous(); return Clutter.EVENT_STOP;
         } return Clutter.EVENT_PROPAGATE;
     }, this);
 
     this._playPauseBtnTablet.connectObject('button-release-event', () => { 
-        if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+        if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
         this._controller.togglePlayback(); return Clutter.EVENT_STOP; 
     }, this);
     this._playPauseBtnTablet.connectObject('touch-event', (actor, event) => {
         if (event.type() === Clutter.EventType.TOUCH_BEGIN) return Clutter.EVENT_STOP;
         if (event.type() === Clutter.EventType.TOUCH_END) {
-            if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+            if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
             this._controller.togglePlayback(); return Clutter.EVENT_STOP;
         } return Clutter.EVENT_PROPAGATE;
     }, this);
 
     this._nextBtn.connectObject('button-release-event', () => { 
-        if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+        if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
         this._controller.next(); return Clutter.EVENT_STOP; 
     }, this);
     this._nextBtn.connectObject('touch-event', (actor, event) => {
         if (event.type() === Clutter.EventType.TOUCH_BEGIN) return Clutter.EVENT_STOP;
         if (event.type() === Clutter.EventType.TOUCH_END) {
-            if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+            if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
             this._controller.next(); return Clutter.EVENT_STOP;
         } return Clutter.EVENT_PROPAGATE;
     }, this);
@@ -1691,7 +1708,7 @@ class MusicPill extends St.Widget {
             this._body.ease({ scale_x: 0.96, scale_y: 0.96, duration: 80, mode: Clutter.AnimationMode.EASE_OUT_QUAD });
             return Clutter.EVENT_STOP;
         } else if (type === Clutter.EventType.TOUCH_END) {
-            if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+            if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
             if (!this._body) return Clutter.EVENT_STOP;
             this._body.ease({ scale_x: 1.0, scale_y: 1.0, duration: 150, mode: Clutter.AnimationMode.EASE_OUT_BACK });
             this._handleLeftClick();
@@ -1701,7 +1718,7 @@ class MusicPill extends St.Widget {
     }, this);
 
     this.connectObject('button-release-event', (actor, event) => {
-        if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+        if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
         if (!this._body) return Clutter.EVENT_STOP;
         this._body.ease({ scale_x: 1.0, scale_y: 1.0, duration: 150, mode: Clutter.AnimationMode.EASE_OUT_BACK });
 
@@ -1726,7 +1743,7 @@ class MusicPill extends St.Widget {
     
     this.connectObject('enter-event', () => {
         let delay = this._settings.get_int('hover-delay');
-        if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); }
+        if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); }
         this._hoverTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
             this._hoverTimeout = null;
             let action = this._settings.get_string('action-hover');
@@ -1740,7 +1757,7 @@ class MusicPill extends St.Widget {
 
     this.connectObject('leave-event', () => {
         if (this._hoverTimeout) {
-            GLib.source_remove(this._hoverTimeout);
+            GLib.Source.remove(this._hoverTimeout);
             this._hoverTimeout = null;
         }
         return Clutter.EVENT_PROPAGATE;
@@ -1749,7 +1766,7 @@ class MusicPill extends St.Widget {
     this.connectObject('scroll-event', (actor, event) => {
         try {
             if (!this._settings.get_boolean('enable-scroll-controls')) return Clutter.EVENT_STOP;
-	    if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
+	    if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
             let direction = event.get_scroll_direction();
             let shouldNext = false;
             let shouldPrev = false;
@@ -1797,10 +1814,12 @@ class MusicPill extends St.Widget {
                 if (shouldNext) {
                     this._animateSlide(invert ? -offset : offset);
                     if (action === 'volume') this._controller.changeVolume(true);
+                    else if (action === 'player') this._controller.switchPlayer(true);
                     else this._controller.next();
                 } else {
                     this._animateSlide(invert ? offset : -offset);
                     if (action === 'volume') this._controller.changeVolume(false);
+                    else if (action === 'player') this._controller.switchPlayer(false);
                     else this._controller.previous();
                 }
             }
@@ -1896,14 +1915,14 @@ class MusicPill extends St.Widget {
   }
 
   _cleanup() {
-      if (this._realVisibilityTimerId) { GLib.source_remove(this._realVisibilityTimerId); this._realVisibilityTimerId = null; }
-      if (this._allocTimer) { GLib.source_remove(this._allocTimer); this._allocTimer = null; }
-      if (this._colorAnimId) { GLib.source_remove(this._colorAnimId); this._colorAnimId = null; }
-      if (this._artDebounceTimer) { GLib.source_remove(this._artDebounceTimer); this._artDebounceTimer = null; }
-      if (this._hideGraceTimer) { GLib.source_remove(this._hideGraceTimer); this._hideGraceTimer = null; }
-      if (this._hoverTimeout) { GLib.source_remove(this._hoverTimeout); this._hoverTimeout = null; }
-      if (this._singleClickTimerId) { GLib.source_remove(this._singleClickTimerId); this._singleClickTimerId = null; }
-      if (this._idleDimId) { GLib.source_remove(this._idleDimId); this._idleDimId = null; }
+      if (this._realVisibilityTimerId) { GLib.Source.remove(this._realVisibilityTimerId); this._realVisibilityTimerId = null; }
+      if (this._allocTimer) { GLib.Source.remove(this._allocTimer); this._allocTimer = null; }
+      if (this._colorAnimId) { GLib.Source.remove(this._colorAnimId); this._colorAnimId = null; }
+      if (this._artDebounceTimer) { GLib.Source.remove(this._artDebounceTimer); this._artDebounceTimer = null; }
+      if (this._hideGraceTimer) { GLib.Source.remove(this._hideGraceTimer); this._hideGraceTimer = null; }
+      if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); this._hoverTimeout = null; }
+      if (this._singleClickTimerId) { GLib.Source.remove(this._singleClickTimerId); this._singleClickTimerId = null; }
+      if (this._idleDimId) { GLib.Source.remove(this._idleDimId); this._idleDimId = null; }
       if (this._cancellable) { this._cancellable.cancel(); this._cancellable = null; }
   }
   
@@ -1922,14 +1941,14 @@ class MusicPill extends St.Widget {
       if (this._lastLeftClickTime && (now - this._lastLeftClickTime) <= doubleClickTime) {
           this._lastLeftClickTime = 0;
           if (this._singleClickTimerId) {
-              GLib.source_remove(this._singleClickTimerId);
+              GLib.Source.remove(this._singleClickTimerId);
               this._singleClickTimerId = null;
           }
           this._controller.performAction(doubleAction);
       } else {
           this._lastLeftClickTime = now;
           if (this._singleClickTimerId) {
-              GLib.source_remove(this._singleClickTimerId);
+              GLib.Source.remove(this._singleClickTimerId);
           }
           this._singleClickTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, doubleClickTime, () => {
               this._singleClickTimerId = null;
@@ -2028,7 +2047,7 @@ class MusicPill extends St.Widget {
       let showSetting = this._settings.get_boolean('show-album-art');
       if (!showSetting) {
           if (this._artDebounceTimer) {
-              GLib.source_remove(this._artDebounceTimer);
+              GLib.Source.remove(this._artDebounceTimer);
               this._artDebounceTimer = null;
           }
           this._artBin.visible = false;
@@ -2039,7 +2058,7 @@ class MusicPill extends St.Widget {
 
       if (hasMeta) {
           if (this._artDebounceTimer) {
-              GLib.source_remove(this._artDebounceTimer);
+              GLib.Source.remove(this._artDebounceTimer);
               this._artDebounceTimer = null;
           }
           this._artBin.visible = true;
@@ -2283,8 +2302,14 @@ class MusicPill extends St.Widget {
                     let monitor = Main.layoutManager.findMonitorForActor(this);
                     let maxAvailableW = monitor ? monitor.width - 40 : 800;
                 
-                    targetWidth = hideText ? elementsW : Math.min(Math.max(elementsW, 120), confWidth);
-                    targetWidth = Math.min(targetWidth, maxAvailableW);
+                    let isLyricActive = (this._lyricObj && this._lyricObj.content);
+
+                    if (isLyricActive && !hideText) {
+                        targetWidth = Math.min(confWidth, maxAvailableW);
+                    } else {
+                        targetWidth = hideText ? elementsW : Math.min(Math.max(elementsW, 120), confWidth);
+                        targetWidth = Math.min(targetWidth, maxAvailableW);
+                    }
                     
                     if (currentWidth > 0 && Math.abs(targetWidth - currentWidth) < 10) {
                         targetWidth = currentWidth;
@@ -2302,7 +2327,7 @@ class MusicPill extends St.Widget {
             }
         }
         
-        if (this._idleDimId) { GLib.source_remove(this._idleDimId); this._idleDimId = null; }
+        if (this._idleDimId) { GLib.Source.remove(this._idleDimId); this._idleDimId = null; }
 
         this._idleDimId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
             this._idleDimId = null;
@@ -2333,9 +2358,16 @@ class MusicPill extends St.Widget {
   }
 
 	setLyric(lyricObj) {
-	  this._lyricObj = lyricObj;
-	  if (!this._isActiveState) return;
-	  this._updateTextDisplay(true);
+        let wasActive = !!(this._lyricObj && this._lyricObj.content);
+        this._lyricObj = lyricObj;
+        let isActive = !!(this._lyricObj && this._lyricObj.content);
+
+        if (!this._isActiveState) return;
+        this._updateTextDisplay(true);
+
+        if (wasActive !== isActive) {
+            this._updateDimensions();
+        }
 	}
 	
   updateDisplay(title, artist, artUrl, status, busName, isSkipActive, player = null) {
@@ -2381,7 +2413,7 @@ class MusicPill extends St.Widget {
         this._origArtist = null;
         this._lyricObj = null;
         if (this._hideGraceTimer) {
-            GLib.source_remove(this._hideGraceTimer);
+            GLib.Source.remove(this._hideGraceTimer);
             this._hideGraceTimer = null;
         }
     }
@@ -2417,7 +2449,7 @@ class MusicPill extends St.Widget {
             this._origArtist = tempArtist;
             
             if (this._hideGraceTimer) {
-                GLib.source_remove(this._hideGraceTimer);
+                GLib.Source.remove(this._hideGraceTimer);
                 this._hideGraceTimer = null;
             }
             
@@ -2451,7 +2483,7 @@ class MusicPill extends St.Widget {
                 this._lastArtUrl = artUrl;
                 if (artUrl) {
                     if (this._artDebounceTimer) {
-                        GLib.source_remove(this._artDebounceTimer);
+                        GLib.Source.remove(this._artDebounceTimer);
                         this._artDebounceTimer = null;
                     }
                     if (this._settings.get_boolean('show-album-art')) {
@@ -2513,7 +2545,7 @@ class MusicPill extends St.Widget {
     }
 
     if (this._hideGraceTimer) {
-        GLib.source_remove(this._hideGraceTimer);
+        GLib.Source.remove(this._hideGraceTimer);
         this._hideGraceTimer = null;
     }
 
@@ -2556,7 +2588,7 @@ class MusicPill extends St.Widget {
 
         if (artUrl) {
             if (this._artDebounceTimer) {
-                GLib.source_remove(this._artDebounceTimer);
+                GLib.Source.remove(this._artDebounceTimer);
                 this._artDebounceTimer = null;
             }
             
@@ -2634,7 +2666,7 @@ class MusicPill extends St.Widget {
   }
 
   _startColorTransition() {
-      if (this._colorAnimId) { GLib.source_remove(this._colorAnimId); this._colorAnimId = null; }
+      if (this._colorAnimId) { GLib.Source.remove(this._colorAnimId); this._colorAnimId = null; }
       let base = this._targetColor;
       let factor = (this._currentStatus === 'Playing') ? 0.6 : 0.4;
       let targetR = Math.floor(base.r * factor);
@@ -2747,7 +2779,7 @@ class PlayerSelectorMenu extends St.Widget {
         
         this._box.connectObject('enter-event', () => {
             if (this._leaveHideTimeoutId) {
-                GLib.source_remove(this._leaveHideTimeoutId);
+                GLib.Source.remove(this._leaveHideTimeoutId);
                 this._leaveHideTimeoutId = null;
             }
             return Clutter.EVENT_PROPAGATE;
@@ -2756,7 +2788,7 @@ class PlayerSelectorMenu extends St.Widget {
         this._box.connectObject('leave-event', () => {
             if (this._settings.get_boolean('popup-hide-on-leave')) {
                 if (this._leaveHideTimeoutId) {
-                    GLib.source_remove(this._leaveHideTimeoutId);
+                    GLib.Source.remove(this._leaveHideTimeoutId);
                 }
                 this._leaveHideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
                     this._leaveHideTimeoutId = null;
@@ -2769,7 +2801,7 @@ class PlayerSelectorMenu extends St.Widget {
 
         this.connect('destroy', () => {
             if (this._leaveHideTimeoutId) {
-                GLib.source_remove(this._leaveHideTimeoutId);
+                GLib.Source.remove(this._leaveHideTimeoutId);
                 this._leaveHideTimeoutId = null;
             }
         });
@@ -2947,9 +2979,9 @@ class PlayerSelectorMenu extends St.Widget {
 
         if (pill._isSidePanel) {
             let isLeftEdge = (px < monitor.x + (monitor.width / 2));
-            startY = Math.round(py + (ph / 2) - (menuH / 2)); // <-- ITT
+            startY = Math.round(py + (ph / 2) - (menuH / 2));
             if (startY < monitor.y + 10) startY = monitor.y + 10;
-            if (startY + menuH > monitor.y + monitor.height - 10) startY = monitor.y + monitor.height - menuH - 10; // <-- ITT (2x)
+            if (startY + menuH > monitor.y + monitor.height - 10) startY = monitor.y + monitor.height - menuH - 10;
             
             if (isLeftEdge) {
                 startX = Math.round(px + pw + 15);
@@ -2978,7 +3010,7 @@ class PlayerSelectorMenu extends St.Widget {
         if (this._isHiding) return;
         
         if (this._leaveHideTimeoutId) {
-            GLib.source_remove(this._leaveHideTimeoutId);
+            GLib.Source.remove(this._leaveHideTimeoutId);
             this._leaveHideTimeoutId = null;
         }
 
