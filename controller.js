@@ -455,7 +455,7 @@ export class MusicController {
     }
 
     _queueInject() {
-        if (this._injectTimeout) GLib.Sourc.remove(this._injectTimeout);
+        if (this._injectTimeout) GLib.Source.remove(this._injectTimeout);
         this._injectTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             this._inject();
             this._injectTimeout = null;
