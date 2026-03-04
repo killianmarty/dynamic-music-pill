@@ -121,7 +121,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         // Scroll Controls
         const scrollCtrlRow = new Adw.ActionRow({
             title: _('Enable Scroll Controls'),
-            subtitle: _('Change Tracks or Volume using scroll wheel or touchpad')
+            subtitle: _('Change Tracks, Volume or Media Player using scroll wheel or touchpad')
         });
         const scrollCtrlToggle = new Gtk.Switch({
             active: settings.get_boolean('enable-scroll-controls'),
@@ -239,10 +239,10 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         genGroup.add(lyricFadeDurationRow);
         
         const tabletModeRow = new Adw.ComboRow({
-	    title: 'Tablet Mode Controls',
-	    subtitle: 'Show media buttons directly on the pill',
+	    title: _('Tablet Mode Controls'),
+	    subtitle: _('Show media buttons directly on the pill'),
 	    model: new Gtk.StringList({
-		strings: ['Off', 'Skip Only', 'Play/Pause Only', 'All Controls']
+		strings: [_('Off'), _('Skip Only'), _('Play/Pause Only'), _('All Controls')]
 	    }),
 	    selected: settings.get_int('tablet-mode'),
 	});
@@ -273,10 +273,13 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         // Mouse Actions Group
         const actionGroup = new Adw.PreferencesGroup({ title: _('Mouse Actions') });
         const actionModel = new Gtk.StringList();
-        const actionNames = ["None", "Play / Pause", "Next Track", "Previous Track", "Open Player App", "Open Menu", "Select Player", "Open Settings", "Close Player App"];
+        const actionNames = [
+	    _("None"), _("Play / Pause"), _("Next Track"), _("Previous Track"), 
+	    _("Open Player App"), _("Open Menu"), _("Select Player"), _("Open Settings"), _("Close Player App")
+	];
         const actionValues = ['none', 'play_pause', 'next', 'previous', 'open_app', 'toggle_menu', 'open_player_menu', 'open_settings', 'close_app'];
         
-        actionNames.forEach(name => actionModel.append(_(name)));
+        actionNames.forEach(name => actionModel.append(name));
 
         const leftRow = new Adw.ComboRow({
             title: _('Left Click'),
@@ -970,19 +973,19 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         });
 
         const helpLabel = new Gtk.Label({
-            label: "To allow the extension to open/close your player, you need to provide its exact window name (App ID).\n\n" +
-                   "<b>Common Examples:</b>\n" +
-                   "• Spotify (Flatpak): <b>com.spotify.Client</b>\n" +
-                   "• VLC: <b>vlc</b>\n" +
-                   "• YouTube Music (Web App): <b>youtube-music</b>\n" +
-                   "• High Tide: <b>io.github.nokse22.high-tide</b>\n" +
-                   "• Browsers: <b>chromium</b>, <b>firefox</b>, <b>brave-browser</b>\n\n" +
-                   "<b>How to find it manually:</b>\n" +
-                   "1. Press <b>Alt + F2</b>, type <b>lg</b>, and press Enter.\n" +
-                   "2. Click on the <b>Windows</b> tab in the top right corner.\n" +
-                   "3. Find your music player in the list.\n" +
-                   "4. Look at the <b>wmclass:</b> or <b>app:</b> field. That is your App ID! <i>(Remove the .desktop part)</i>\n" +
-                   "5. Press Esc to close the debugger.",
+            label: _("To allow the extension to open/close your player, you need to provide its exact window name (App ID).\n\n" +
+		   "<b>Common Examples:</b>\n" +
+		   "• Spotify (Flatpak): <b>com.spotify.Client</b>\n" +
+		   "• VLC: <b>vlc</b>\n" +
+		   "• YouTube Music (Web App): <b>youtube-music</b>\n" +
+		   "• High Tide: <b>io.github.nokse22.high-tide</b>\n" +
+		   "• Browsers: <b>chromium</b>, <b>firefox</b>, <b>brave-browser</b>\n\n" +
+		   "<b>How to find it manually:</b>\n" +
+		   "1. Press <b>Alt + F2</b>, type <b>lg</b>, and press Enter.\n" +
+		   "2. Click on the <b>Windows</b> tab in the top right corner.\n" +
+		   "3. Find your music player in the list.\n" +
+		   "4. Look at the <b>wmclass:</b> or <b>app:</b> field. That is your App ID! <i>(Remove the .desktop part)</i>\n" +
+		   "5. Press Esc to close the debugger."),
             use_markup: true,
             justify: Gtk.Justification.LEFT,
             xalign: 0,
@@ -1107,8 +1110,8 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         refreshAppMappings();
 
         const activePlayersGroup = new Adw.PreferencesGroup({
-            title: 'Running Players Detection',
-            description: 'Click on a detected player to automatically fill the mapping.'
+            	title: _('Running Players Detection'),
+    		description: _('Click on a detected player to automatically fill the mapping.')
         });
         otherPage.add(activePlayersGroup);
 
@@ -1131,9 +1134,9 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                         let mprisNames = names.filter(n => n.startsWith('org.mpris.MediaPlayer2.'));
 
                         if (mprisNames.length === 0) {
-                            activePlayersGroup.set_description('No active players detected. Open a music app first!');
-                        } else {
-                            activePlayersGroup.set_description('Select a player to help the extension identify it:');
+			    activePlayersGroup.set_description(_('No active players detected. Open a music app first!'));
+			} else {
+			    activePlayersGroup.set_description(_('Select a player to help the extension identify it:'));
                             
                             mprisNames.forEach(fullBusName => {
                                 let shortName = fullBusName.replace('org.mpris.MediaPlayer2.', '');
@@ -1153,7 +1156,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                                 });
 
                                 let btn = new Gtk.Button({
-                                    label: 'Use This',
+                                    label: _('Use This'),
                                     css_classes: ['suggested-action'],
                                     valign: Gtk.Align.CENTER
                                 });
@@ -1339,7 +1342,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             title: _('Support on Ko-fi'),
             subtitle: _('Buy me a coffee on Ko-fi')
         });
-        const kofiBtn = new Gtk.Button({ label: 'Open', valign: Gtk.Align.CENTER, css_classes: ['suggested-action'] });
+        const kofiBtn = new Gtk.Button({ label: _('Open'), valign: Gtk.Align.CENTER, css_classes: ['suggested-action'] });
         kofiBtn.connect('clicked', () => Gio.AppInfo.launch_default_for_uri('https://ko-fi.com/andbal', null));
         kofiRow.add_suffix(kofiBtn);
         supportGroup.add(kofiRow);
@@ -1348,7 +1351,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             title: _('Buy Me a Coffee'),
             subtitle: _('Support via BuyMeACoffee')
         });
-        const bmacBtn = new Gtk.Button({ label: 'Open', valign: Gtk.Align.CENTER, css_classes: ['suggested-action'] });
+        const bmacBtn = new Gtk.Button({ label: _('Open'), valign: Gtk.Align.CENTER, css_classes: ['suggested-action'] });
         bmacBtn.connect('clicked', () => Gio.AppInfo.launch_default_for_uri('https://buymeacoffee.com/andbal', null));
         bmacRow.add_suffix(bmacBtn);
         supportGroup.add(bmacRow);
