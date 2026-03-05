@@ -26,7 +26,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             'popup-follow-custom-bg', 'popup-follow-custom-text','action-hover', 'hover-delay', 'selected-player-bus',
             'popup-show-player-selector','show-pill-border','invert-scroll-direction','always-show-pill','popup-hide-on-leave',
             'visualizer-bars','enable-lyrics','app-name-mapping', 'lyric-fade-enable', 'lyric-fade-duration','visualizer-bar-width', 'visualizer-height',
-            'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height'
+            'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height','edge-margin'
         ];
 
         // =========================================
@@ -585,6 +585,14 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         });
         settings.bind('visualizer-padding', visPaddingRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         lookGroup.add(visPaddingRow);
+        
+        const edgeMarginRow = new Adw.SpinRow({
+            title: _('Outer Edge Margin'),
+            subtitle: _('Spacing before the album art and after the visualizer'),
+            adjustment: new Gtk.Adjustment({ lower: 0, upper: 50, step_increment: 1 })
+        });
+        settings.bind('edge-margin', edgeMarginRow, 'value', Gio.SettingsBindFlags.DEFAULT);
+        lookGroup.add(edgeMarginRow);
         
         const radiusRow = new Adw.SpinRow({
             title: _('Corner Radius'),
