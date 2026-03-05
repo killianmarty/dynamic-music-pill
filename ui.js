@@ -9,6 +9,7 @@ import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { formatTime, getAverageColor, smartUnpack } from './utils.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { SharedVisualizerEngine } from './visualizerEngine.js';
 
 
 export const CrossfadeArt = GObject.registerClass(
@@ -333,16 +334,17 @@ class CavaVisualizer extends St.DrawingArea {
         
         this._prevHeights = new Array(this._barCount).fill(1);
         this._peakValues = new Array(this._barCount).fill(0);
-        this._bins = new Array(this._barCount).fill(0);
-        this._silentFrames = 0;
+        this._isSilent = true;
         
         this._colorR = 1.0; this._colorG = 1.0; this._colorB = 1.0;
-        this._isPlaying = false;
-        
         this.set_width(this._barCount * 4);
         
         this.connect('repaint', this._onRepaint.bind(this));
         this.connect('destroy', this._cleanup.bind(this));
+
+        this._engine = SharedVisualizerEngine.get();
+        this._engineCallback = this._onEngineUpdate.bind(this);
+        this._engine.subscribe(this._engineCallback);
     }
 
     _updateBarCount() {
@@ -350,13 +352,7 @@ class CavaVisualizer extends St.DrawingArea {
         let bw = this._isPopup ? (this._settings.get_int('popup-visualizer-bar-width') || 2) : (this._settings.get_int('visualizer-bar-width') || 2);
         this._prevHeights = new Array(this._barCount).fill(1);
         this._peakValues = new Array(this._barCount).fill(0);
-        this._bins = new Array(this._barCount).fill(0);
         this.set_width(this._barCount * (bw + 2) - 2);
-        
-        if (this._isPlaying) {
-            this._stopCava();
-            this._startCava();
-        }
     }
 
     setColor(c) {
@@ -365,183 +361,65 @@ class CavaVisualizer extends St.DrawingArea {
         if (c && typeof c.g === 'number' && !isNaN(c.g)) g = Math.min(255, c.g + 100);
         if (c && typeof c.b === 'number' && !isNaN(c.b)) b = Math.min(255, c.b + 100);
         
-        this._colorR = r / 255.0;
-        this._colorG = g / 255.0;
-        this._colorB = b / 255.0;
+        this._colorR = r / 255.0; this._colorG = g / 255.0; this._colorB = b / 255.0;
         this.queue_repaint();
     }
 
     setPlaying(playing) {
-        this._isPlaying = playing;
-        if (playing) {
-            this._startCava();
-        } else {
-            this._stopCava();
+        this._engine.setPlaying(playing);
+        if (!playing) {
             this._prevHeights.fill(1);
             this._peakValues.fill(0);
+            this._isSilent = true;
             this.queue_repaint();
         }
     }
 
-    _startCava() {
-        if (this._process) return;
-        try {
-            if (!GLib.find_program_in_path('cava')) return;
+    _resampleBars(rawData, targetCount) {
+        if (rawData.length === targetCount) return rawData;
+        let result = new Array(targetCount).fill(0);
+        let ratio = rawData.length / targetCount;
+        
+        for (let i = 0; i < targetCount; i++) {
+            let start = Math.floor(i * ratio);
+            let end = Math.floor((i + 1) * ratio);
+            let sum = 0, count = 0;
+            for (let j = start; j < end && j < rawData.length; j++) {
+                sum += rawData[j]; count++;
+            }
+            result[i] = count > 0 ? (sum / count) : 0;
+        }
+        return result;
+    }
 
-            let tmpConfig = `${GLib.get_tmp_dir()}/dynamic-pill-cava-${GLib.get_monotonic_time()}`;
+    _onEngineUpdate(normalizedBars, isSilent) {
+        if (!this || (this.is_finalized && this.is_finalized()) || !this.mapped) return;
+
+        this._isSilent = isSilent;
+        let myBars = this._resampleBars(normalizedBars, this._barCount);
+        
+        let totalHeight = this.get_height() || 24;
+        let maxHalfHeight = totalHeight / 2;
+
+        for (let i = 0; i < this._barCount; i++) {
+            let norm = myBars[i];
+            let visualCurve = Math.pow(norm, 0.8); 
+            let target = Math.max(1, Math.round(visualCurve * maxHalfHeight));
             
-            let cfg = `[general]\n` +
-                      `bars = ${this._barCount}\n` +
-                      `framerate = 60\n` +
-                      `autosens = 1\n` +
-                      `lower_cutoff_freq = 50\n` +
-                      `higher_cutoff_freq = 8000\n` +  
-                      `[smoothing]\n` +
-                      `monstercat = 1.5\n` +        
-                      `waves = 0\n` +
-                      `noise_reduction = 60\n` +   
-                      `gravity = 140\n` +             
-                      `[input]\n` +
-                      `method = pulse\n` +
-                      `source = auto\n` +
-                      `[output]\n` +
-                      `method = raw\n` +
-                      `bit_format = 16bit\n` +
-                      `channels = mono\n` +
-                      `raw_target = /dev/stdout\n`;
+            if (!isSilent && norm > 0 && target < 3) target = 3;
 
-            GLib.file_set_contents(tmpConfig, new TextEncoder().encode(cfg));
-            this._tmpConfigPath = tmpConfig;
+            let prev = this._prevHeights[i];
+            let alpha = target < prev ? 0.6 : 0.95;
+            let height = Math.round(prev * (1 - alpha) + target * alpha);
+            this._prevHeights[i] = height;
 
-            this._process = Gio.Subprocess.new(['cava', '-p', tmpConfig], Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
-            this._stdout = this._process.get_stdout_pipe();
-            this._cancellable = new Gio.Cancellable();
-            this._bufferUsed = 0;
-            this._rawBuffer = new Uint8Array(8192);
-
-            this._readStdoutBytes();
-        } catch (e) {
-            console.error("[Dynamic Music Pill] Cava error: " + e.message);
+            if (height > this._peakValues[i]) {
+                this._peakValues[i] = height;
+            } else {
+                this._peakValues[i] -= this._peakValues[i] * 0.06;
+            }
         }
-    }
-
-    _readStdoutBytes() {
-        if (!this._stdout || !this._cancellable || this._cancellable.is_cancelled()) return;
-
-        let readSize = Math.max(4096, this._barCount * 2 * 4);
-        this._stdout.read_bytes_async(readSize, GLib.PRIORITY_DEFAULT, this._cancellable, (stream, res) => {
-            try {
-                if (!this || (this.is_finalized && this.is_finalized())) return;
-
-                let gbytes = stream.read_bytes_finish(res);
-                if (!gbytes) return;
-
-                let chunk = gbytes.get_data();
-                if (!chunk || chunk.length === 0) {
-                    this._readStdoutBytes();
-                    return;
-                }
-
-                let needed = this._bufferUsed + chunk.length;
-                if (needed > this._rawBuffer.length) {
-                    let newBuffer = new Uint8Array(Math.max(needed, this._rawBuffer.length * 2));
-                    newBuffer.set(this._rawBuffer.subarray(0, this._bufferUsed));
-                    this._rawBuffer = newBuffer;
-                }
-                this._rawBuffer.set(chunk, this._bufferUsed);
-                this._bufferUsed += chunk.length;
-
-                let frameSize = this._barCount * 2;
-                let totalFrames = Math.floor(this._bufferUsed / frameSize);
-
-                if (totalFrames > 0) {
-                    let lastFrameOffset = (totalFrames - 1) * frameSize;
-                    let dv = new DataView(this._rawBuffer.buffer, this._rawBuffer.byteOffset + lastFrameOffset, frameSize);
-
-                    if (this._rollingMax === undefined) this._rollingMax = 2000;
-
-                    let currentFrameMax = 1;
-                    for (let i = 0; i < this._barCount; i++) {
-                        let v = dv.getUint16(i * 2, true);
-                        this._bins[i] = v;
-                        if (v > currentFrameMax) currentFrameMax = v;
-                    }
-
-                    if (currentFrameMax < 100) {
-                        this._silentFrames++;
-                    } else {
-                        this._silentFrames = 0;
-                    }
-
-                    if (this._silentFrames >= 30) {
-                        this._prevHeights.fill(1);
-                        this._peakValues.fill(0);
-                        this._rollingMax = 2000; // Reset
-                    } else {
-                        if (currentFrameMax > this._rollingMax) {
-                            this._rollingMax = currentFrameMax;
-                        } else {
-                            this._rollingMax = this._rollingMax * 0.98 + currentFrameMax * 0.02;
-                        }
-                        
-                        let safeMax = Math.max(this._rollingMax, 5000); 
-                        let invMaxVal = 1 / safeMax;
-                        
-                        let totalHeight = this.get_height() || 24;
-                        let maxHalfHeight = totalHeight / 2;
-
-                        for (let i = 0; i < this._barCount; i++) {
-                            let v = this._bins[i];
-                            
-                            let norm = Math.min(1.0, v * invMaxVal); 
-                            
-                            let visualCurve = Math.pow(norm, 0.8); 
-                            let target = Math.max(1, Math.round(visualCurve * maxHalfHeight));
-                            
-                            if (this._silentFrames === 0 && v > 0 && target < 3) target = 3;
-
-                            let prev = this._prevHeights[i];
-                            let alpha = target < prev ? 0.6 : 0.95;
-                            let height = Math.round(prev * (1 - alpha) + target * alpha);
-                            this._prevHeights[i] = height;
-
-                            if (height > this._peakValues[i]) {
-                                this._peakValues[i] = height;
-                            } else {
-                                this._peakValues[i] -= this._peakValues[i] * 0.06;
-                            }
-                        }
-                    }
-
-                    this._rawBuffer.copyWithin(0, totalFrames * frameSize, this._bufferUsed);
-                    this._bufferUsed -= totalFrames * frameSize;
-                    this.queue_repaint();
-                }
-                this._readStdoutBytes();
-            } catch (e) { }
-        });
-    }
-
-    _stopCava() {
-        if (this._cancellable) {
-            this._cancellable.cancel();
-            this._cancellable = null;
-        }
-        if (this._process) {
-            try { this._process.force_exit(); } catch (e) { }
-            this._process = null;
-        }
-        if (this._stdout) {
-            try { this._stdout.close(null); } catch (e) { }
-            this._stdout = null;
-        }
-        if (this._tmpConfigPath) {
-            try {
-                let file = Gio.File.new_for_path(this._tmpConfigPath);
-                if (file.query_exists(null)) file.delete(null);
-            } catch (e) { }
-            this._tmpConfigPath = null;
-        }
+        this.queue_repaint();
     }
 
     _onRepaint() {
@@ -555,22 +433,20 @@ class CavaVisualizer extends St.DrawingArea {
         cr.setOperator(Cairo.Operator.OVER);
         let barWidth = this._isPopup ? (this._settings.get_int('popup-visualizer-bar-width') || 2) : (this._settings.get_int('visualizer-bar-width') || 2);
         let gap = 2;
-        let totalBarWidth = this._barCount * (barWidth + gap) - gap;
-	let offsetX = 0;
+        let offsetX = 0;
         let centerY = Math.floor(height / 2);
-        let isSilent = this._silentFrames >= 30;
 
         for (let i = 0; i < this._barCount; i++) {
             let halfHeight = Math.max(1, this._prevHeights[i]);
             let x = offsetX + i * (barWidth + gap);
             let edgeFade = 1 - (Math.abs(i - (this._barCount - 1) / 2) / ((this._barCount - 1) / 2)) * 0.35;
-            let barAlpha = isSilent ? 0.3 * edgeFade : 1.0 * edgeFade;
+            let barAlpha = this._isSilent ? 0.3 * edgeFade : 1.0 * edgeFade;
 
             cr.setSourceRGBA(this._colorR, this._colorG, this._colorB, barAlpha);
             cr.rectangle(x, centerY - halfHeight, barWidth, halfHeight * 2);
             cr.fill();
 
-            if (!isSilent) {
+            if (!this._isSilent) {
                 let peak = Math.max(1, this._peakValues[i]);
                 cr.setSourceRGBA(this._colorR, this._colorG, this._colorB, barAlpha * 0.55);
                 cr.rectangle(x, centerY - peak - 1, barWidth, 1);
@@ -583,7 +459,7 @@ class CavaVisualizer extends St.DrawingArea {
     }
 
     _cleanup() {
-        this._stopCava();
+        this._engine.unsubscribe(this._engineCallback);
     }
 });
 
@@ -1363,8 +1239,10 @@ class ExpandedPlayer extends St.Widget {
         );
 
         this._startTimer();
-        this._visualizer.setMode(this._settings.get_int('visualizer-style'));
-        let showVis = this._settings.get_boolean('popup-show-visualizer') && this._settings.get_int('visualizer-style') !== 0;
+        let visStyle = this._settings.get_int('visualizer-style');
+        this._visualizer.setMode(visStyle);
+        
+        let showVis = this._settings.get_boolean('popup-show-visualizer') && visStyle !== 0;
         this._visBin.visible = showVis;
         this._visualizer.visible = showVis;
         
