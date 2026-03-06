@@ -7,7 +7,7 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import { formatTime, getAverageColor, smartUnpack } from './utils.js';
+import { formatTime, getAverageColor, smartUnpack, getClosestGnomeAccent } from './utils.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { SharedVisualizerEngine } from './visualizerEngine.js';
 
@@ -2069,10 +2069,22 @@ class MusicPill extends St.Widget {
         return GLib.SOURCE_CONTINUE;
     });
 
-    this.connect('destroy', this._cleanup.bind(this));
-  }
+    try {
+        this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
+        this._originalAccent = this._interfaceSettings.get_string('accent-color');
+    } catch (e) {
+        this._interfaceSettings = null; //for older gnomes
+    }
+
+    this.connect('destroy', this._cleanup.bind(this));
+  }
 
   _cleanup() {
+      if (this._interfaceSettings && this._settings.get_boolean('sync-accent-color')) {
+          try {
+              this._interfaceSettings.set_string('accent-color', this._originalAccent || 'blue');
+          } catch (e) {}
+      }
       if (this._realVisibilityTimerId) { GLib.Source.remove(this._realVisibilityTimerId); this._realVisibilityTimerId = null; }
       if (this._allocTimer) { GLib.Source.remove(this._allocTimer); this._allocTimer = null; }
       if (this._colorAnimId) { GLib.Source.remove(this._colorAnimId); this._colorAnimId = null; }
@@ -2118,6 +2130,8 @@ class MusicPill extends St.Widget {
           });
       }
   }
+  
+      
   
   _checkRealVisibility() {
       let isVisible = false;
@@ -2797,7 +2811,7 @@ class MusicPill extends St.Widget {
   }
 
   _loadColorFromArt(artUrl) {
-      let file = Gio.File.new_for_uri(artUrl);
+      let file = Gio.File.new_for_uri(artUrl); 
       if (!this._cancellable) this._cancellable = new Gio.Cancellable();
       
       file.load_contents_async(this._cancellable, (f, res) => {
@@ -2808,6 +2822,15 @@ class MusicPill extends St.Widget {
                   let pixbuf = GdkPixbuf.Pixbuf.new_from_stream(stream, null);
                   this._targetColor = getAverageColor(pixbuf);
                   
+                  try {
+                      if (this._interfaceSettings && this._settings.get_boolean('sync-accent-color')) {
+                          let closestAccent = getClosestGnomeAccent(this._targetColor.r, this._targetColor.g, this._targetColor.b);
+                          this._interfaceSettings.set_string('accent-color', closestAccent);
+                      }
+                  } catch (err) {
+                      console.debug('[Dynamic Music Pill] Native accent sync failed: ', err.message);
+                  }
+
                   if (this._visualizer && this._visualizer.setColor) {
                       this._visualizer.setColor(this._targetColor);
                       this._startColorTransition();
