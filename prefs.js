@@ -26,7 +26,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             'popup-follow-custom-bg', 'popup-follow-custom-text','action-hover', 'hover-delay', 'selected-player-bus',
             'popup-show-player-selector','show-pill-border','invert-scroll-direction','always-show-pill','popup-hide-on-leave',
             'visualizer-bars','enable-lyrics','app-name-mapping', 'lyric-fade-enable', 'lyric-fade-duration','visualizer-bar-width', 'visualizer-height',
-            'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height','edge-margin','popup-vinyl-speed'
+            'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height','edge-margin','popup-vinyl-speed','sync-accent-color'
         ];
 
         // =========================================
@@ -809,6 +809,19 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         panelDimGroup.add(panelHeightRow);
         posGroup.add(panelDimGroup);
         const colorGroup = new Adw.PreferencesGroup({ title: _('Custom Colors') });
+        
+        const syncAccentRow = new Adw.ActionRow({
+            title: _('Sync GNOME Accent Color'),
+            subtitle: _('Dynamically change the GNOME Shell accent color to match the album art')
+        });
+        const syncAccentToggle = new Gtk.Switch({
+            active: settings.get_boolean('sync-accent-color'),
+            valign: Gtk.Align.CENTER
+        });
+        settings.bind('sync-accent-color', syncAccentToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
+        syncAccentRow.add_suffix(syncAccentToggle);
+        colorGroup.add(syncAccentRow);
+        
         const customColorRow = new Adw.ActionRow({ title: _('Use Custom Colors'), subtitle: _('Override dynamic colors') });
         const customColorToggle = new Gtk.Switch({ active: settings.get_boolean('use-custom-colors'), valign: Gtk.Align.CENTER });
         settings.bind('use-custom-colors', customColorToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
