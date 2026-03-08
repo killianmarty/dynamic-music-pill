@@ -113,7 +113,7 @@ export function disableDashToDockAutohide() {
         }
         dtdPopupOpenCount++;
     } catch (e) {
-        console.debug('[Dynamic Music Pill] DTD disable hiba: ' + e.message);
+        console.debug('[Dynamic Music Pill] DTD disable error: ' + e.message);
     }
 }
 
@@ -127,6 +127,6 @@ export function restoreDashToDockAutohide() {
             }
         }
     } catch (e) {
-        console.debug('[Dynamic Music Pill] DTD restore hiba: ' + e.message);
+        console.debug('[Dynamic Music Pill] DTD restore error: ' + e.message);
     }
 }
