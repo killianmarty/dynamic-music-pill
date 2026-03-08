@@ -1,4 +1,6 @@
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 
 export function smartUnpack(value) {
@@ -87,4 +89,44 @@ export function getClosestGnomeAccent(r, g, b) {
     }
 
     return closest;
+}
+
+let dtdPopupOpenCount = 0;
+let _dtdDockManager = null;
+
+export function initDTDModule() {
+    const ext = Main.extensionManager.lookup('dash-to-dock@micxgx.gmail.com');
+    if (!ext) return;
+    import(`file://${ext.path}/extension.js`).then(mod => {
+        _dtdDockManager = mod.dockManager;
+    }).catch(() => {});
+}
+
+export function disableDashToDockAutohide() {
+    try {
+        if (!_dtdDockManager) return;
+        if (dtdPopupOpenCount === 0) {
+            for (const dock of _dtdDockManager._allDocks) {
+                dock.dash.requiresVisibility = true;
+                dock._show();
+            }
+        }
+        dtdPopupOpenCount++;
+    } catch (e) {
+        console.debug('[Dynamic Music Pill] DTD disable hiba: ' + e.message);
+    }
+}
+
+export function restoreDashToDockAutohide() {
+    try {
+        if (dtdPopupOpenCount > 0) dtdPopupOpenCount--;
+        if (dtdPopupOpenCount === 0 && _dtdDockManager) {
+            for (const dock of _dtdDockManager._allDocks) {
+                dock.dash.requiresVisibility = false;
+                dock._updateDashVisibility();
+            }
+        }
+    } catch (e) {
+        console.debug('[Dynamic Music Pill] DTD restore hiba: ' + e.message);
+    }
 }
