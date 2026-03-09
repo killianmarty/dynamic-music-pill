@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-04 11:52+0100\n"
-"PO-Revision-Date: 2026-03-09 08:48+0000\n"
+"PO-Revision-Date: 2026-03-10 23:09+0000\n"
 "Last-Translator: Joy <dequeyuri@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/id/>\n"
@@ -221,75 +221,75 @@ msgstr "Buka Pengaturan"
 
 #: prefs.js:278
 msgid "Close Player App"
-msgstr ""
+msgstr "Tutup Aplikasi Pemutar"
 
 #: prefs.js:285
 msgid "Left Click"
-msgstr ""
+msgstr "Klik Kiri"
 
 #: prefs.js:293
 msgid "Double Click"
-msgstr ""
+msgstr "Klik Ganda"
 
 #: prefs.js:301
 msgid "Middle Click"
-msgstr ""
+msgstr "Klik Tengah"
 
 #: prefs.js:309
 msgid "Right Click"
-msgstr ""
+msgstr "Klik Kanan"
 
 #: prefs.js:317
 msgid "Hover Action"
-msgstr ""
+msgstr "Aksi Hover"
 
 #: prefs.js:328
 msgid "Hover Delay (ms)"
-msgstr ""
+msgstr "Jeda Hover (ms)"
 
 #: prefs.js:342
 msgid "Pop-up Menu"
-msgstr ""
+msgstr "Menu Pop-up"
 
 #: prefs.js:346
 msgid "Pop-up Appearance"
-msgstr ""
+msgstr "Tampilan Pop-up"
 
 #: prefs.js:348
 msgid "Rotate Vinyl"
-msgstr ""
+msgstr "Putar Vinyl"
 
 #: prefs.js:349
 msgid "Spin the album art when playing"
-msgstr ""
+msgstr "Putar sampul album saat musik diputar"
 
 #: prefs.js:360 prefs.js:657
 msgid "Enable Shadow"
-msgstr ""
+msgstr "Aktifkan Bayangan"
 
 #: prefs.js:361
 msgid "Show drop shadow behind the pop-up menu"
-msgstr ""
+msgstr "Tampilkan bayangan di belakang menu pop-up"
 
 #: prefs.js:372
 msgid "Close on Mouse Leave"
-msgstr ""
+msgstr "Tutup Saat Kursor Keluar"
 
 #: prefs.js:373
 msgid "Automatically hide the pop-up when you move the cursor away"
-msgstr ""
+msgstr "Sembunyikan pop-up secara otomatis saat kursor dipindahkan"
 
 #: prefs.js:384
 msgid "Follow Custom Background Color"
-msgstr ""
+msgstr "Ikuti Warna Latar Kustom"
 
 #: prefs.js:385
 msgid "Use the custom background color for the pop-up (if active)"
-msgstr ""
+msgstr "Gunakan warna latar kustom untuk pop-up (jika aktif)"
 
 #: prefs.js:394
 msgid "Follow Custom Text Color"
-msgstr ""
+msgstr "Ikuti Warna Teks Kustom"
 
 #: prefs.js:395
 msgid "Use the custom text color for the pop-up (if active)"
