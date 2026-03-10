@@ -22,6 +22,18 @@ A dynamic, elegant, and highly customizable music widget for GNOME Shell. It bri
 ![Gnome Extensions Downloads](https://img.shields.io/gnome-extensions/dt/dynamic-music-pill@andbal) ![Views](https://komarev.com/ghpvc/?username=Andbal23&repo=dynamic-music-pill&label=Views&color=green) ![GNOME Shell](https://img.shields.io/badge/GNOME-45%20--%2049-blue?logo=gnome&logoColor=white) ![GitHub License](https://img.shields.io/github/license/Andbal23/dynamic-music-pill)
 [![Stars](https://img.shields.io/github/stars/Andbal23/dynamic-music-pill?style=social)](https://github.com/Andbal23/dynamic-music-pill/stargazers) [![Watchers](https://img.shields.io/github/watchers/Andbal23/dynamic-music-pill?style=social)](https://github.com/Andbal23/dynamic-music-pill/watchers) [![Translation status](https://hosted.weblate.org/widgets/dynamic-music-pill/-/svg-badge.svg)](https://hosted.weblate.org/engage/dynamic-music-pill/)
 
+
+</div>
+
+---
+<div align="center">
+  <a href="https://extensions.gnome.org/extension/9334/dynamic-music-pill/">
+    <img alt="Get it on GNOME Extensions" height="150" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true"/>
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://hosted.weblate.org/engage/dynamic-music-pill/">
+    <img alt="Translation status" height="300" src="https://hosted.weblate.org/widget/dynamic-music-pill/multi-auto.svg"/>
+  </a>
 </div>
 
 ---
@@ -262,7 +274,6 @@ Translations are managed on Weblate. No coding knowledge is required.
 
 [![Translation status](https://hosted.weblate.org/widgets/dynamic-music-pill/-/svg-badge.svg)](https://hosted.weblate.org/engage/dynamic-music-pill/)
 
-[![Translation status Image](https://hosted.weblate.org/widget/dynamic-music-pill/multi-auto.svg)](https://hosted.weblate.org/engage/dynamic-music-pill/)
 
 ---
 
