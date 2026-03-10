@@ -1,19 +1,8 @@
-<table align="center">
-  <tr>
-    <td align="center" style="border: none !important;">
-      <img src="screenshots/logo.png" width="90">
-    </td>
-    <td align="center" style="border: none !important;">
-      <h1 style="margin: 0; font-size: 45px;">Dynamic Music Pill</h1>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <img src="screenshots/banner.svg" alt="Dynamic Music Pill" width="100%">
+</p>
 
 A dynamic, elegant, and highly customizable music widget for GNOME Shell. It brings a pill-shaped media controller with a live audio visualizer directly to your Dash or Panel, complete with a rich Pop-Up Menu.
-
-<p align="center">
-  <img src="screenshots/picture.png" alt="Dynamic Music Pill" width="400">
-</p>
 
 ---
 
@@ -150,22 +139,17 @@ A dynamic, elegant, and highly customizable music widget for GNOME Shell. It bri
 
 **Factory Reset** — All settings are reset to their defaults in a single action.
 
+<p align="center">
+  <img src="screenshots/features.svg" alt="Dynamic Music Pill" width="100%">
+</p>
+
 ---
 
-## Screenshots
-
-| Dash-to-Dock Integration | Top Panel Mode |
-|:---:|:---:|
-| <img src="screenshots/playing.png" width="400"> | <img src="screenshots/panel.png" width="400"> |
-
-| Pop-Up (Dash) | Pop-Up (Panel) |
-|:---:|:---:|
-| <img src="screenshots/popdash.png" width="400"> | <img src="screenshots/poppanel.png" width="400"> |
 
 ### Preview
 
 <p align="center">
-  <img src="screenshots/demo.gif" alt="Dynamic Music Pill Demo">
+  <img src="screenshots/demo.gif" alt="Dynamic Music Pill Demo" width=100%>
 </p>
 
 ---
@@ -276,6 +260,10 @@ Translations are managed on Weblate. No coding knowledge is required.
 
 
 ---
+
+<p align="center">
+  <img src="screenshots/how-it-works.svg" alt="Dynamic Music Pill" width="100%">
+</p>
 
 ## Configuration
 
