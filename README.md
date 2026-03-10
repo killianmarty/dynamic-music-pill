@@ -220,34 +220,6 @@ The Real-Time visualizer mode requires the `cava` package to be installed.
 
 ---
 
-## Translation
-
-### Compiling Translations (Manual / GitHub Installs)
-
-If you installed the extension by cloning the repository or from a release archive, translation files must be compiled manually. The GNOME Extensions Store handles this automatically.
-
-First, ensure **gettext** is installed:
-
-| Distribution | Command |
-|---|---|
-| Ubuntu / Debian | `sudo apt install gettext` |
-| Fedora | `sudo dnf install gettext` |
-| Arch Linux | `sudo pacman -S gettext` |
-
-Then compile the translation for your language from the extension's root directory:
-
-| Language | Command |
-|---|---|
-| Hungarian | `mkdir -p locale/hu/LC_MESSAGES && msgfmt po/hu.po -o locale/hu/LC_MESSAGES/dynamic-music-pill.mo` |
-| German | `mkdir -p locale/de/LC_MESSAGES && msgfmt po/de.po -o locale/de/LC_MESSAGES/dynamic-music-pill.mo` |
-| French | `mkdir -p locale/fr/LC_MESSAGES && msgfmt po/fr.po -o locale/fr/LC_MESSAGES/dynamic-music-pill.mo` |
-| Spanish | `mkdir -p locale/es/LC_MESSAGES && msgfmt po/es.po -o locale/es/LC_MESSAGES/dynamic-music-pill.mo` |
-| Portuguese (BR) | `mkdir -p locale/pt_BR/LC_MESSAGES && msgfmt po/pt_BR.po -o locale/pt_BR/LC_MESSAGES/dynamic-music-pill.mo` |
-| Russian | `mkdir -p locale/ru/LC_MESSAGES && msgfmt po/ru.po -o locale/ru/LC_MESSAGES/dynamic-music-pill.mo` |
-| Italian | `mkdir -p locale/it/LC_MESSAGES && msgfmt po/it.po -o locale/it/LC_MESSAGES/dynamic-music-pill.mo` |
-
-After compiling, restart GNOME Shell to apply the new language.
-
 ### Contributing a Translation
 
 Translations are managed on Weblate. No coding knowledge is required.
