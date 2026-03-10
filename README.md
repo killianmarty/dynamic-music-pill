@@ -285,7 +285,14 @@ The Preferences window is organized into five tabs.
 
 ### Tab 1 — Main Pill
 
+<p align="center">
+  <img src="screenshots/main.png" width="400">
+</p>
+
 #### General Settings
+
+
+
 
 | Setting | Description |
 |---|---|
@@ -321,6 +328,10 @@ Each of the five interaction types can be assigned one of the following actions:
 
 ### Tab 2 — Pop-up Menu
 
+<p align="center">
+  <img src="screenshots/popup.png" width="400">
+</p>
+
 | Setting | Description |
 |---|---|
 | Rotate Vinyl | Spins the album art like a vinyl record while music is playing. Pauses on playback pause. |
@@ -347,7 +358,13 @@ Each of the five interaction types can be assigned one of the following actions:
 
 ### Tab 3 — Style & Layout
 
+<p align="center">
+  <img src="screenshots/style.png" width="400">
+</p>
+
 #### Visualizer and Shape
+
+
 
 | Setting | Description |
 |---|---|
@@ -418,6 +435,10 @@ Each of the five interaction types can be assigned one of the following actions:
 
 ### Tab 4 — System & Reset
 
+<p align="center">
+  <img src="screenshots/system.png" width="400">
+</p>
+
 #### System
 
 | Setting | Description |
@@ -458,7 +479,7 @@ Common App ID examples:
 ---
 
 <p align="center">
-  <img src="screenshots/setting.png" width="400">
+  <img src="screenshots/about.png" width="400">
 </p>
 
 ---
