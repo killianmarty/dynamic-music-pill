@@ -1360,11 +1360,38 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             title: _("What's New") 
         });
 
-        const changelog = [     
+        const changelog = [
         	{
-                version: "V26 - Latest Update",
-                subtitle: "Dynamic Contrast & Readability Improvements",
+                version: "V29 - Latest Update",
+                subtitle: "Real-Time Visualizer, App Mapping & Major Fixes",
                 expanded: true,
+                notes: "✨ New Features:\n" +
+                       "• Real-Time Visualizer: Added CAVA-powered real-time audio visualizer!\n" +
+                       "• Accent Color Sync: Dynamically change the GNOME accent color to match the current album art.\n" +
+                       "• Manual App Mapping: Added a new settings page to manually map unrecognized App IDs (fixes Open/Close app actions).\n" +
+                       "• Translations: Implemented multi-language support! Contributions to complete missing languages are welcome on GitHub.\n" +
+                       "• Shared Engine: Implemented a shared visualizer engine for better performance (paving the way for simultaneous Dash & Top Panel placement).\n" +
+                       "• Implemented cache system for better performance.\n\n" +
+                       "🎨 Customization & Enhancements:\n" +
+                       "• Advanced Visualizer:Deep customization options added (bar count, width, height, margin, and border radius).\n" +
+                       "• Smooth Fading: Added adjustable fade-in/out transitions for Lyrics and edge-fading for scrolling text.\n" +
+                       "• Touch & Tablet: Added a dedicated Play/Pause button in Tablet Mode and implemented proper touchscreen target controls.\n" +
+                       "• Pop-up Tweaks: Adjustable Vinyl rotation speed and a new option to auto-hide the pop-up on mouse leave/hover.\n" +
+                       "• Added dynamic width with crossfade and a new 'Outer Edge Margin' setting.\n\n" +
+                       "🐛 Bug Fixes:\n" +
+                       "• Fixed blurry album art, text, and numbers inside the pop-up menu.\n" +
+                       "• Fixed background color not updating properly to reflect the album artwork.\n" +
+                       "• Fixed an issue where selecting a non-playing player caused the pill to hide and break the player selector.\n" +
+                       "• Fixed Spotify window failing to close properly.\n" +
+                       "• Fixed a bug where the microphone would activate when the CAVA visualizer was enabled.\n" +
+                       "• Fixed floating menu alignment issues when using Dash to Dock.\n" +
+                       "• Fixed Dash to Dock aligment when tried to change an icon position.\n" +
+                       "• Fixed and issue with Strawberry player where the art image didn't loaded."
+            },     
+        	{
+                version: "V26",
+                subtitle: "Dynamic Contrast & Readability Improvements",
+                expanded: false,
                 notes: "• Added dynamic contrast: Popup text and buttons now automatically turn dark on light album arts for perfect readability\n" +
                        "• The Player Selector menu now correctly follows your Custom Color settings\n" +
                        "• Dynamic contrast is also applied to the Player Selector menu\n" +
@@ -1372,7 +1399,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                        "• Fixed an issue where the popup menu would jump or resize incorrectly when Custom Width was enabled"
             },
             {
-                version: "V25 - Latest Update",
+                version: "V25",
                 subtitle: "Ubuntu Dock Support, UI Fixes & Stability",
                 expanded: false,
                 notes: "• Added automatic vertical mode for side panels (e.g., Ubuntu Dock)\n" +
