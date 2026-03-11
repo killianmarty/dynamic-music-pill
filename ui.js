@@ -1743,14 +1743,9 @@ class MusicPill extends St.Widget {
         width: 0,
         visible: false
     });
-    this._delegate = { 
-        app: { 
-            get_id: function() { return 'dynamic-music-pill-dummy'; } 
-        } 
-    };
+    this._delegate = { app: null };
     this.child = { _delegate: this._delegate };
-    this.app = this._delegate.app;
-    
+
     this._lastScrollTime = 0;
     this._controller = controller;
     this._settings = controller._settings;
