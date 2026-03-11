@@ -70,6 +70,8 @@ export class MusicController {
         this._settings = extension._settings;
         this._proxies = new Map();
         this._artCache = new Map();
+        this._ownArtCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'dynamic-music-pill', 'art']);
+        GLib.mkdir_with_parents(this._ownArtCacheDir, 0o755);
         
         this._NodeInfo = Gio.DBusNodeInfo.new_for_xml(MPRIS_IFACE);
         this._PlayerInterfaceInfo = this._NodeInfo.interfaces.find(i => i.name === 'org.mpris.MediaPlayer2.Player');
@@ -1102,6 +1104,7 @@ export class MusicController {
             let m = active.Metadata;
             let title = null, artist = null, artUrl = null;
             let currentArt = null;
+            let trackFileUrl = null;
 
             if (m) {
                 let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
@@ -1109,6 +1112,7 @@ export class MusicController {
                 artist = smartUnpack(metaObj['xesam:artist']);
                 if (Array.isArray(artist)) artist = artist.map(a => smartUnpack(a)).join(', ');
                 currentArt = smartUnpack(metaObj['mpris:artUrl']);
+                trackFileUrl = smartUnpack(metaObj['xesam:url']);
             }
             
             if (!title && active._busName) {
@@ -1120,12 +1124,42 @@ export class MusicController {
             let cacheKey = rawName.includes('.instance') ? rawName.split('.instance')[0] : rawName;
 
             if (currentArt && typeof currentArt === 'string' && currentArt.trim() !== "") {
-                this._artCache.set(cacheKey, currentArt);
-                artUrl = currentArt;
-            } else if (this._artCache.has(cacheKey)) {
-                artUrl = this._artCache.get(cacheKey);
-            } else {
-                artUrl = null;
+                let isFileUrl = currentArt.startsWith('file://');
+                let fileExists = !isFileUrl || Gio.File.new_for_uri(currentArt).query_exists(null);
+                if (fileExists) {
+                    this._artCache.set(cacheKey, currentArt);
+                    artUrl = currentArt;
+                }
+            }
+
+            if (!artUrl && this._artCache.has(cacheKey)) {
+                let cached = this._artCache.get(cacheKey);
+                let cachedIsFile = cached.startsWith('file://');
+                let cachedExists = !cachedIsFile || Gio.File.new_for_uri(cached).query_exists(null);
+                if (cachedExists) artUrl = cached;
+                else this._artCache.delete(cacheKey);
+            }
+
+            if (!artUrl && trackFileUrl && trackFileUrl.startsWith('file://')) {
+                try {
+                    let hash = GLib.compute_checksum_for_string(GLib.ChecksumType.MD5, trackFileUrl.replace('file://', ''), -1);
+                    let ownFile = Gio.File.new_for_path(GLib.build_filenamev([this._ownArtCacheDir, hash + '.jpg']));
+                    if (ownFile.query_exists(null)) {
+                        artUrl = ownFile.get_uri();
+                        this._artCache.set(cacheKey, artUrl);
+                    } else {
+                        let info = Gio.File.new_for_uri(trackFileUrl).query_info(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH, Gio.FileQueryInfoFlags.NONE, null);
+                        let thumbPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+                        if (thumbPath) {
+                            let thumbFile = Gio.File.new_for_path(thumbPath);
+                            if (thumbFile.query_exists(null)) {
+                                thumbFile.copy(ownFile, Gio.FileCopyFlags.OVERWRITE, null, null);
+                                artUrl = ownFile.get_uri();
+                                this._artCache.set(cacheKey, artUrl);
+                            }
+                        }
+                    }
+                } catch (e) {}
             }
             
             if (!artUrl) {
