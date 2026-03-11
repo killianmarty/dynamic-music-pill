@@ -166,17 +166,22 @@ class CrossfadeArt extends St.Widget {
     }
 
     setArt(newUrl, force = false) {
-        if (!force && this._currentUrl === newUrl && this.get_children().length > 0) return;
+        let children = this.get_children();
+        
+        if (children.length > 0 && children[children.length - 1]._bgUrl === newUrl) {
+            return; 
+        }
+
         this._currentUrl = newUrl;
         this._updateContainerStyle();
+
+        this.get_children().forEach(c => c.remove_all_transitions());
 
         let newLayer = new St.Widget({ x_expand: true, y_expand: true, opacity: 0 });
         newLayer._bgUrl = newUrl;
         
         this.add_child(newLayer);
         this._refreshLayerStyle(newLayer);
-        
-        this._activeLayer = newLayer;
 
         newLayer.ease({
             opacity: 255,
@@ -186,12 +191,20 @@ class CrossfadeArt extends St.Widget {
                 if (!isFinished) return;
                 
                 newLayer.opacity = 255; 
-                
-                this.get_children().forEach(c => {
-                    if (c !== this._activeLayer) {
-                        c.destroy();
+
+                let currentChildren = this.get_children();
+                let myIndex = currentChildren.indexOf(newLayer);
+                if (myIndex > 0) {
+                    for (let i = 0; i < myIndex; i++) {
+                        let oldLayer = currentChildren[i];
+                        oldLayer.ease({
+                            opacity: 0,
+                            duration: 300,
+                            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                            onStopped: () => oldLayer.destroy()
+                        });
                     }
-                });
+                }
             }
         });
     }
@@ -1278,46 +1291,61 @@ class ExpandedPlayer extends St.Widget {
             
             if (trackChanged) {
                 this._currentArtUrl = artUrl;
-                let bg = `url("${artUrl}")`;
-                let style = `background-image: ${bg}; background-size: cover; border-radius: ${radius}px;`;
-
-                let newLayer = new St.Widget({ 
-                    style: style, 
-                    width: 100,      
-                    height: 100,
-                    x_expand: true, 
-                    y_expand: true, 
-                    opacity: this._vinyl.get_children().length > 0 ? 0 : 255 
-                });
-
-                this._vinyl.add_child(newLayer);
                 
-                this._activeVinylLayer = newLayer;
+                let children = this._vinyl.get_children();
+                if (children.length === 0 || children[children.length - 1]._bgUrl !== artUrl) {
+                    let bg = `url("${artUrl}")`;
+                    let style = `background-image: ${bg}; background-size: cover; border-radius: ${radius}px;`;
 
-                if (this._vinyl.get_children().length > 1) {
-                    newLayer.ease({
-                        opacity: 255,
-                        duration: 1800,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                        onStopped: (isFinished) => {
-                            if (isFinished) {
-                                newLayer.opacity = 255;
-                                
-                                this._vinyl.get_children().forEach(c => {
-                                    if (c !== this._activeVinylLayer) {
-                                        c.destroy();
-                                    }
-                                });
-                            }
-                        }
+                    children.forEach(c => c.remove_all_transitions());
+
+                    let newLayer = new St.Widget({ 
+                        style: style, 
+                        width: 100,      
+                        height: 100,
+                        x_expand: true, 
+                        y_expand: true, 
+                        opacity: children.length > 0 ? 0 : 255 
                     });
+                    newLayer._bgUrl = artUrl; 
+
+                    this._vinyl.add_child(newLayer);
+
+                    if (this._vinyl.get_children().length > 1) {
+                        newLayer.ease({
+                            opacity: 255,
+                            duration: 1800,
+                            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                            onStopped: (isFinished) => {
+                                if (!isFinished) return;
+                                
+                                newLayer.opacity = 255;
+                                    
+                                let currentChildren = this._vinyl.get_children();
+                                let myIndex = currentChildren.indexOf(newLayer);
+                                if (myIndex > 0) {
+                                    for (let i = 0; i < myIndex; i++) {
+                                        let oldLayer = currentChildren[i];
+                                        oldLayer.ease({
+                                            opacity: 0,
+                                            duration: 300,
+                                            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                                            onStopped: () => oldLayer.destroy()
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             } else {
-                let bg = `url("${artUrl}")`;
-                let style = `background-image: ${bg}; background-size: cover; border-radius: ${radius}px;`;
-                this._vinyl.get_children().forEach(c => c.set_style(style));
+                this._vinyl.get_children().forEach(c => {
+                    let layerUrl = c._bgUrl || artUrl; 
+                    let bg = `url("${layerUrl}")`;
+                    let style = `background-image: ${bg}; background-size: cover; border-radius: ${radius}px;`;
+                    c.set_style(style);
+                });
             }
-        }
 
         if (status === 'Playing') {
             this._playPauseIcon.icon_name = 'media-playback-pause-symbolic';
@@ -1364,6 +1392,7 @@ class ExpandedPlayer extends St.Widget {
         if (this._repeatBtn) this._repeatBtn.visible = showShufLoop;
         
         this._updatePlayerSelector();
+    	}
     }
 
     showFor(player, artUrl) {
