@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-04 11:52+0100\n"
-"PO-Revision-Date: 2026-02-28 11:25+0000\n"
+"PO-Revision-Date: 2026-03-12 18:09+0000\n"
 "Last-Translator: Christian Lauinger <christian.lauinger@gmail.com>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/de/>\n"
@@ -13,19 +13,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.16.1-dev\n"
+"X-Generator: Weblate 5.17-dev\n"
 
 #: controller.js:997
 msgid "Unknown Player"
-msgstr ""
+msgstr "Unbekannter Spieler"
 
 #: controller.js:998
 msgid "No active media"
-msgstr ""
+msgstr "Keine aktiven Medien"
 
 #: controller.js:1287
 msgid "Auto (Smart)"
-msgstr ""
+msgstr "Auto (Smart)"
 
 #: prefs.js:36
 msgid "Main Pill"
@@ -37,11 +37,13 @@ msgstr "Allgemeine Einstellungen"
 
 #: prefs.js:43
 msgid "Always ON"
-msgstr ""
+msgstr "Immer eingeschaltet"
 
 #: prefs.js:44
 msgid "Retain last known track and keep pill visible after closing the player"
 msgstr ""
+"Letzten bekannten Titel speichern und Pille nach dem Schließen des Players "
+"sichtbar lassen"
 
 #: prefs.js:56
 msgid "Show Album Art"
@@ -70,6 +72,8 @@ msgstr "Scroll-Steuerung aktivieren"
 #: prefs.js:124
 msgid "Change Tracks, Volume or Media Player using scroll wheel or touchpad"
 msgstr ""
+"Wechseln Sie Titel, Lautstärke oder Media Player mithilfe des Scrollrads "
+"oder Touchpads"
 
 #: prefs.js:135
 msgid "Change Track"
@@ -81,7 +85,7 @@ msgstr "Change Volume"
 
 #: prefs.js:137
 msgid "Switch Player"
-msgstr ""
+msgstr "Spieler wechseln"
 
 #: prefs.js:145
 msgid "Scroll Action"
@@ -101,11 +105,11 @@ msgstr "Richtung des Sprungeffekts (Natürlich vs Traditionell)"
 
 #: prefs.js:182
 msgid "Invert Scroll Direction"
-msgstr ""
+msgstr "Scrollrichtung umkehren"
 
 #: prefs.js:183
 msgid "Swap up/down scrolling for track and volume actions"
-msgstr ""
+msgstr "Scrollen nach oben/unten für Titel- und Lautstärkeregelung"
 
 #: prefs.js:195
 msgid "Scrolling Text"
@@ -117,47 +121,47 @@ msgstr "Lange Titel und Künstlernamen animieren"
 
 #: prefs.js:208
 msgid "Lyrics Display"
-msgstr ""
+msgstr "Anzeige der Liedtexte"
 
 #: prefs.js:209
 msgid "Show real-time synchronized lyrics for current track."
-msgstr ""
+msgstr "Zeige synchronisierte Liedtexte für den aktuellen Titel in Echtzeit an."
 
 #: prefs.js:220
 msgid "Lyrics Fade-in Effect"
-msgstr ""
+msgstr "Text-Einblendungseffekt"
 
 #: prefs.js:221
 msgid "Smoothly fade in new lyric lines"
-msgstr ""
+msgstr "Neue Liedtextzeilen sanft einblenden"
 
 #: prefs.js:233
 msgid "Fade Duration (ms)"
-msgstr ""
+msgstr "Ausblenddauer (ms)"
 
 #: prefs.js:242
 msgid "Tablet Mode Controls"
-msgstr ""
+msgstr "Steuerelemente im Tablet-Modus"
 
 #: prefs.js:243
 msgid "Show media buttons directly on the pill"
-msgstr ""
+msgstr "Medien-Schaltflächen direkt auf der Pille anzeigen"
 
 #: prefs.js:245
 msgid "Off"
-msgstr ""
+msgstr "Aus"
 
 #: prefs.js:245
 msgid "Skip Only"
-msgstr ""
+msgstr "Nur überspringen"
 
 #: prefs.js:245
 msgid "Play/Pause Only"
-msgstr ""
+msgstr "Nur Wiedergabe/Pause"
 
 #: prefs.js:245
 msgid "All Controls"
-msgstr ""
+msgstr "Alle Steuerelemente"
 
 #: prefs.js:253
 msgid "Inline Artist"
@@ -181,39 +185,39 @@ msgstr "Mausaktionen"
 
 #: prefs.js:277
 msgid "None"
-msgstr ""
+msgstr "Keine"
 
 #: prefs.js:277
 msgid "Play / Pause"
-msgstr ""
+msgstr "Wiedergabe/Pause"
 
 #: prefs.js:277
 msgid "Next Track"
-msgstr ""
+msgstr "Nächster Titel"
 
 #: prefs.js:277
 msgid "Previous Track"
-msgstr ""
+msgstr "Vorheriger Titel"
 
 #: prefs.js:278
 msgid "Open Player App"
-msgstr ""
+msgstr "Player-App öffnen"
 
 #: prefs.js:278
 msgid "Open Menu"
-msgstr ""
+msgstr "Menü Öffnen"
 
 #: prefs.js:278
 msgid "Select Player"
-msgstr ""
+msgstr "Spieler auswählen"
 
 #: prefs.js:278
 msgid "Open Settings"
-msgstr ""
+msgstr "Einstellungen öffnen"
 
 #: prefs.js:278
 msgid "Close Player App"
-msgstr ""
+msgstr "Spieler-App schließen"
 
 #: prefs.js:285
 msgid "Left Click"
@@ -221,7 +225,7 @@ msgstr "Linksklick"
 
 #: prefs.js:293
 msgid "Double Click"
-msgstr ""
+msgstr "Doppelklick"
 
 #: prefs.js:301
 msgid "Middle Click"
@@ -233,11 +237,11 @@ msgstr "Rechtsklick"
 
 #: prefs.js:317
 msgid "Hover Action"
-msgstr ""
+msgstr "Schweben-Aktion"
 
 #: prefs.js:328
 msgid "Hover Delay (ms)"
-msgstr ""
+msgstr "Verzögerung beim Bewegen des Mauszeigers (ms)"
 
 #: prefs.js:342
 msgid "Pop-up Menu"
@@ -265,27 +269,32 @@ msgstr "Schlagschatten hinter dem Popup-Menü anzeigen"
 
 #: prefs.js:372
 msgid "Close on Mouse Leave"
-msgstr ""
+msgstr "Beim Verlassen mit der Maus schließen"
 
 #: prefs.js:373
 msgid "Automatically hide the pop-up when you move the cursor away"
 msgstr ""
+"Das Popup-Fenster automatisch ausblenden, wenn Sie den Cursor wegbewegen"
 
 #: prefs.js:384
 msgid "Follow Custom Background Color"
-msgstr ""
+msgstr "Benutzerdefinierte Hintergrundfarbe beibehalten"
 
 #: prefs.js:385
 msgid "Use the custom background color for the pop-up (if active)"
 msgstr ""
+"Verwenden Sie die benutzerdefinierte Hintergrundfarbe für das Popup-Fenster "
+"(falls aktiv)"
 
 #: prefs.js:394
 msgid "Follow Custom Text Color"
-msgstr ""
+msgstr "Benutzerdefinierte Textfarbe befolgen"
 
 #: prefs.js:395
 msgid "Use the custom text color for the pop-up (if active)"
 msgstr ""
+"Verwenden Sie die benutzerdefinierte Textfarbe für das Popup-Fenster (falls "
+"aktiv)"
 
 #: prefs.js:404
 msgid "Follow Transparency"
@@ -341,11 +350,11 @@ msgstr "Benutzerdefinierter Breitenwert"
 
 #: prefs.js:467
 msgid "Show Player Selector"
-msgstr ""
+msgstr "Spielerauswahl anzeigen"
 
 #: prefs.js:468
 msgid "Display active player icons at the top of the pop-up"
-msgstr ""
+msgstr "Aktive Spieler-Symbole oben im Popup-Fenster anzeigen"
 
 #: prefs.js:479
 msgid "Show Visualizer in Pop-up"
@@ -363,15 +372,15 @@ msgstr ""
 
 #: prefs.js:496
 msgid "Popup Visualizer Bar Count"
-msgstr ""
+msgstr "Popup-Visualisierungsleiste zählen"
 
 #: prefs.js:504
 msgid "Popup Visualizer Bar Width"
-msgstr ""
+msgstr "Breite der Popup-Visualisierungsleiste"
 
 #: prefs.js:512
 msgid "Popup Visualizer Height"
-msgstr ""
+msgstr "Höhe des Popup-Visualizers"
 
 #: prefs.js:527
 msgid "Style & Layout"
@@ -395,7 +404,7 @@ msgstr "Beat (Sprunghaft)"
 
 #: prefs.js:537
 msgid "Real-Time (Cava needed)"
-msgstr ""
+msgstr "Echtzeit (Cava erforderlich)"
 
 #: prefs.js:540
 msgid "Visualizer Animation"
@@ -410,30 +419,33 @@ msgid ""
 "Note: 'Real-Time' mode requires the 'cava' package to be installed on your "
 "Linux system."
 msgstr ""
+"Hinweis: Für den „Echtzeit“-Modus muss das „cava“-Paket auf Ihrem Linux-"
+"System installiert sein."
 
 #: prefs.js:558
 msgid "Visualizer Bar Count"
-msgstr ""
+msgstr "Visualizer-Leiste zählen"
 
 #: prefs.js:559
 msgid "Number of bars displayed in the animation"
-msgstr ""
+msgstr "Anzahl der in der Animation angezeigten Balken"
 
 #: prefs.js:566
 msgid "Visualizer Bar Width"
-msgstr ""
+msgstr "Breite der Visualisierungsleiste"
 
 #: prefs.js:567
 msgid "Thickness of individual bars (pixels)"
-msgstr ""
+msgstr "Dicke einzelner Balken (Pixel)"
 
 #: prefs.js:574
 msgid "Visualizer Height"
-msgstr ""
+msgstr "Höhe des Visualizers"
 
 #: prefs.js:575
 msgid "Maximum height of the visualizer (auto-clamped to pill height)"
 msgstr ""
+"Maximale Höhe des Visualizers (automatische Arretierung auf Tablettenhöhe)"
 
 #: prefs.js:582
 msgid "Visualizer Margin"
@@ -453,11 +465,11 @@ msgstr "Rundung der Widget-Ecken (0 = Eckig, 25 = Pille)"
 
 #: prefs.js:598
 msgid "Show Pill Outline"
-msgstr ""
+msgstr "Pill-Umriss anzeigen"
 
 #: prefs.js:599
 msgid "Display a subtle border around the main pill"
-msgstr ""
+msgstr "Zeige einen dezenten Rahmen um die Hauptkapsel an"
 
 #: prefs.js:612
 msgid "Background and Transparency"
@@ -703,11 +715,11 @@ msgstr "Keine Spieler gefunden"
 
 #: prefs.js:971
 msgid "💡 How to find the correct App ID?"
-msgstr ""
+msgstr "💡 Wie finde ich die richtige App-ID?"
 
 #: prefs.js:972
 msgid "Click here for a quick guide and examples"
-msgstr ""
+msgstr "Klicken Sie hier für eine Kurzanleitung und Beispiele"
 
 #: prefs.js:976
 msgid ""
@@ -729,58 +741,85 @@ msgid ""
 "<i>(Remove the .desktop part)</i>\n"
 "5. Press Esc to close the debugger."
 msgstr ""
+"Damit die Erweiterung Ihren Player öffnen/schließen kann, müssen Sie den "
+"genauen Namen des Fensters (App-ID) angeben.\n"
+"\n"
+"<b>Häufige Beispiele:</b>\n"
+"• Spotify (Flatpak): <b>com.spotify.Client</b>\n"
+"• VLC: <b>vlc</b>\n"
+"• YouTube Music (Web-App): <b>youtube-music</b>\n"
+"• High Tide: <b>io.github.nokse22.high-tide</b>\n"
+"• Browser: <b>chromium</b>, <b>firefox</b>, <b>brave-browser</b>\n"
+"\n"
+"<b>So finden Sie ihn manuell:</b>\n"
+"1. Drücken Sie <b>Alt + F2</b>, geben Sie <b>lg</b> ein und drücken Sie die "
+"Eingabetaste.\n"
+"2. Klicken Sie auf die Registerkarte <b>Windows</b> in der oberen rechten "
+"Ecke.\n"
+"3. Suchen Sie Ihren Musikplayer in der Liste.\n"
+"4. Sehen Sie sich das Feld <b>wmclass:</b> oder <b>app:</b> an. Das ist Ihre "
+"App-ID! <i>(Entfernen Sie den Teil .desktop)</i>\n"
+"5. Drücken Sie Esc, um den Debugger zu schließen."
 
 #: prefs.js:1004
 msgid "Saved App Mappings"
-msgstr ""
+msgstr "Gespeicherte App-Zuordnungen"
 
 #: prefs.js:1005
 msgid "Edit the target App ID for manually mapped players, or remove them."
 msgstr ""
+"Bearbeiten Sie die Ziel-App-ID für manuell zugeordnete Player oder entfernen "
+"Sie diese."
 
 #: prefs.js:1026
 msgid "No manual mappings saved."
-msgstr ""
+msgstr "Es wurden keine manuellen Zuordnungen gespeichert."
 
 #: prefs.js:1031
 msgid "Type the correct App ID, then hit Enter or click the Save icon!"
 msgstr ""
+"Geben Sie die richtige App-ID ein und drücken Sie die Eingabetaste oder "
+"klicken Sie auf das Symbol „Speichern“!"
 
 #: prefs.js:1050
 msgid "Save App ID"
-msgstr ""
+msgstr "App-ID speichern"
 
 #: prefs.js:1083
 msgid "Delete Mapping"
-msgstr ""
+msgstr "Zuordnung löschen"
 
 #: prefs.js:1113
 msgid "Running Players Detection"
-msgstr ""
+msgstr "Erkennung von laufenden Spielern"
 
 #: prefs.js:1114
 msgid "Click on a detected player to automatically fill the mapping."
 msgstr ""
+"Klicken Sie auf einen erkannten Player, um die Zuordnung automatisch "
+"auszufüllen."
 
 #: prefs.js:1137
 msgid "No active players detected. Open a music app first!"
 msgstr ""
+"Es wurden keine aktiven Spieler erkannt. Öffnen Sie zuerst eine Musik-App!"
 
 #: prefs.js:1139
 msgid "Select a player to help the extension identify it:"
 msgstr ""
+"Wählen Sie einen Player aus, damit die Erweiterung ihn identifizieren kann:"
 
 #: prefs.js:1159
 msgid "Use This"
-msgstr ""
+msgstr "Verwenden Sie dies"
 
 #: prefs.js:1190
 msgid "Refresh List"
-msgstr ""
+msgstr "Liste aktualisieren"
 
 #: prefs.js:1191
 msgid "Click to scan for active players again"
-msgstr ""
+msgstr "Klicken Sie hier, um erneut nach aktiven Spielern zu suchen"
 
 #: prefs.js:1206
 msgid "Backup & Restore"
@@ -828,7 +867,7 @@ msgstr "Über"
 
 #: prefs.js:1278
 msgid "What's New"
-msgstr ""
+msgstr "Was gibt es Neues"
 
 #: prefs.js:1339
 msgid "Support the Project"
@@ -844,7 +883,7 @@ msgstr "Kauf mir einen Kaffee auf Ko-fi"
 
 #: prefs.js:1345 prefs.js:1354
 msgid "Open"
-msgstr ""
+msgstr "Öffnen"
 
 #: prefs.js:1351
 msgid "Buy Me a Coffee"
@@ -864,27 +903,27 @@ msgstr "Fehler melden oder Code auf GitHub ansehen"
 
 #: ui.js:744
 msgid "Please install \"cava\" for real-time mode."
-msgstr ""
+msgstr "Bitte installieren Sie „cava” für den Echtzeitmodus."
 
 #: ui.js:1194
 msgid "Unknown Title"
-msgstr ""
+msgstr "Unbekannter Titel"
 
 #: ui.js:1197
 msgid "Unknown Artist"
-msgstr ""
+msgstr "Unbekannter Künstler"
 
 #: ui.js:2766
 msgid "Loading..."
-msgstr ""
+msgstr "Wird geladen..."
 
 #: ui.js:2968
 msgid "Select Media Player"
-msgstr ""
+msgstr "Medienwiedergabe auswählen"
 
 #: ui.js:2979
 msgid "Auto (Smart Selection)"
-msgstr ""
+msgstr "Auto (Intelligente Auswahl)"
 
 #~ msgid "Change Tracks or Volume using scroll wheel or touchpad"
 #~ msgstr "Spuren oder Lautstärke mit dem Scrollrad oder Touchpad ändern"
