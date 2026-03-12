@@ -8,26 +8,28 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-04 11:52+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2026-03-12 18:09+0000\n"
+"Last-Translator: lebao3105 <bao12345yocoo@gmail.com>\n"
+"Language-Team: Vietnamese <https://hosted.weblate.org/projects/dynamic-music-"
+"pill/settings/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17-dev\n"
 
 #: controller.js:997
 msgid "Unknown Player"
-msgstr ""
+msgstr "Player không xác định"
 
 #: controller.js:998
 msgid "No active media"
-msgstr ""
+msgstr "Không có media đang chạy"
 
 #: controller.js:1287
 msgid "Auto (Smart)"
-msgstr ""
+msgstr "Tự động (thông minh)"
 
 #: prefs.js:36
 msgid "Main Pill"
@@ -35,11 +37,11 @@ msgstr ""
 
 #: prefs.js:40
 msgid "General Settings"
-msgstr ""
+msgstr "Cài đặt chung"
 
 #: prefs.js:43
 msgid "Always ON"
-msgstr ""
+msgstr "Luôn BẬT"
 
 #: prefs.js:44
 msgid "Retain last known track and keep pill visible after closing the player"
@@ -47,11 +49,11 @@ msgstr ""
 
 #: prefs.js:56
 msgid "Show Album Art"
-msgstr ""
+msgstr "Hiện ảnh Album"
 
 #: prefs.js:57
 msgid "Display the cover art of the currently playing song"
-msgstr ""
+msgstr "Hiện ảnh bìa của bài đang chạy"
 
 #: prefs.js:68
 msgid "Fallback Album Art"
@@ -59,11 +61,11 @@ msgstr ""
 
 #: prefs.js:69 prefs.js:109
 msgid "No image selected"
-msgstr ""
+msgstr "Không có ảnh nào được chọn"
 
 #: prefs.js:79
 msgid "Select Fallback Image"
-msgstr ""
+msgstr "Chọn ảnh dự phòng"
 
 #: prefs.js:123
 msgid "Enable Scroll Controls"
@@ -71,27 +73,27 @@ msgstr ""
 
 #: prefs.js:124
 msgid "Change Tracks, Volume or Media Player using scroll wheel or touchpad"
-msgstr ""
+msgstr "Đổi bài, âm lượng hoặc player bằng cuộn chuột hoặc touchpad"
 
 #: prefs.js:135
 msgid "Change Track"
-msgstr ""
+msgstr "Đổi bài"
 
 #: prefs.js:136
 msgid "Change Volume"
-msgstr ""
+msgstr "Chỉnh âm lượng"
 
 #: prefs.js:137
 msgid "Switch Player"
-msgstr ""
+msgstr "Đổi player"
 
 #: prefs.js:145
 msgid "Scroll Action"
-msgstr ""
+msgstr "Hành động khi cuộn"
 
 #: prefs.js:146
 msgid "Choose what scrolling on the pill should do"
-msgstr ""
+msgstr "Chọn việc sẽ làm khi cuộn trên viên thuốc"
 
 #: prefs.js:170
 msgid "Invert Scroll Animation"
@@ -99,15 +101,16 @@ msgstr ""
 
 #: prefs.js:171
 msgid "Direction of the jump effect (Natural vs Traditional)"
-msgstr ""
+msgstr "Hướng hiệu ứng nhảy (tự nhiên vs truyền thống)"
 
 #: prefs.js:182
 msgid "Invert Scroll Direction"
 msgstr ""
 
 #: prefs.js:183
+#, fuzzy
 msgid "Swap up/down scrolling for track and volume actions"
-msgstr ""
+msgstr "Đổi hướng cuộn lên/xuống cho hành động đổi track và âm lượng"
 
 #: prefs.js:195
 msgid "Scrolling Text"
@@ -115,15 +118,15 @@ msgstr ""
 
 #: prefs.js:196
 msgid "Animate long track titles and artist names"
-msgstr ""
+msgstr "Thêm hoạt ảnh cho tên dài và tên nghệ sĩ"
 
 #: prefs.js:208
 msgid "Lyrics Display"
-msgstr ""
+msgstr "Hiện lời"
 
 #: prefs.js:209
 msgid "Show real-time synchronized lyrics for current track."
-msgstr ""
+msgstr "Hiện lời theo thời gian thực."
 
 #: prefs.js:220
 msgid "Lyrics Fade-in Effect"
