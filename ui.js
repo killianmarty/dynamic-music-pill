@@ -439,7 +439,10 @@ class ScrollLabel extends St.Widget {
                 this._container.ease({
                     translation_x: -distance, duration: duration, mode: Clutter.AnimationMode.LINEAR,
                     onStopped: (isFinished) => {
-                        if (!isFinished || this._gameMode) return; 
+                        if (!isFinished || this._gameMode) {
+                            this._isScrolling = false;
+                            return; 
+                        }
 
                         this._container.translation_x = 0;
                         loop();
