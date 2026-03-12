@@ -533,7 +533,7 @@ class CavaVisualizer extends St.DrawingArea {
     }
 
     setPlaying(playing) {
-        this._engine.setPlaying(playing);
+        this._engine.setPlaying(this._engineCallback, playing);
         if (!playing) {
             this._prevHeights.fill(1);
             this._peakValues.fill(0);
