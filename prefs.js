@@ -26,7 +26,8 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             'popup-follow-custom-bg', 'popup-follow-custom-text','action-hover', 'hover-delay', 'selected-player-bus',
             'popup-show-player-selector','show-pill-border','invert-scroll-direction','always-show-pill','popup-hide-on-leave',
             'visualizer-bars','enable-lyrics','app-name-mapping', 'lyric-fade-enable', 'lyric-fade-duration','visualizer-bar-width', 'visualizer-height',
-            'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height','edge-margin','popup-vinyl-speed','sync-accent-color'
+            'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height','edge-margin','popup-vinyl-speed','sync-accent-color',
+            'enable-custom-buttons', 'custom-button-1', 'custom-button-2', 'playback-history'
         ];
 
         // =========================================
@@ -526,6 +527,72 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         popupGroup.add(popVisHeightRow);
         
         popupPage.add(popupGroup);
+
+        const customBtnGroup = new Adw.PreferencesGroup({
+            title: _('Custom Control Buttons'),
+            description: _("Add up to two extra buttons in the expanded player's controls row.")
+        });
+
+        const enableCustomBtnsRow = new Adw.ActionRow({
+            title: _('Enable Custom Buttons'),
+            subtitle: _('Show additional action buttons next to Shuffle and Loop')
+        });
+        const enableCustomBtnsSwitch = new Gtk.Switch({
+            active: settings.get_boolean('enable-custom-buttons'),
+            valign: Gtk.Align.CENTER
+        });
+        settings.bind('enable-custom-buttons', enableCustomBtnsSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        enableCustomBtnsRow.add_suffix(enableCustomBtnsSwitch);
+        customBtnGroup.add(enableCustomBtnsRow);
+
+        const ACTION_LABELS = [
+            _('None'),
+            _('Volume Control'),
+            _('Seek ±10 Seconds'),
+            _('Audio Output Switcher'),
+            _('Sleep Timer'),
+            _('Playback Speed'),
+            _('Track History'),
+        ];
+        const ACTION_VALUES = ['none', 'volume', 'seek_step', 'output_switch', 'sleep_timer', 'playback_speed', 'history'];
+
+        function makeButtonActionRow(title, subtitle, settingKey) {
+            const model = new Gtk.StringList();
+            ACTION_LABELS.forEach(l => model.append(l));
+
+            let currentVal = settings.get_string(settingKey);
+            let currentIdx = Math.max(0, ACTION_VALUES.indexOf(currentVal));
+
+            const row = new Adw.ComboRow({
+                title,
+                subtitle,
+                model,
+                selected: currentIdx
+            });
+
+            settings.connect(`changed::${settingKey}`, () => {
+                let v = settings.get_string(settingKey);
+                row.selected = Math.max(0, ACTION_VALUES.indexOf(v));
+            });
+
+            row.connect('notify::selected', () => {
+                settings.set_string(settingKey, ACTION_VALUES[row.selected] || 'none');
+            });
+
+            settings.bind('enable-custom-buttons', row, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+            return row;
+        }
+
+        customBtnGroup.set_description(_('If both buttons are set to Seek, they act directly (Button 1 = −10s, Button 2 = +10s). Otherwise Seek opens a sub-page.'));
+
+	customBtnGroup.add(makeButtonActionRow(
+	    _('Custom Button 1'), _('Placed left of Shuffle.'), 'custom-button-1'
+	));
+	customBtnGroup.add(makeButtonActionRow(
+	    _('Custom Button 2'), _('Placed right of Loop.'), 'custom-button-2'
+	));
+
+        popupPage.add(customBtnGroup);
         window.add(popupPage);
 
 
