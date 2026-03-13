@@ -89,6 +89,8 @@ A dynamic, elegant, and highly customizable music widget for GNOME Shell. It bri
 
 **Shuffle and Loop Controls** — Optional shuffle and repeat toggle buttons can be shown in the pop-up alongside the standard playback controls.
 
+**Custom Control Buttons** — Up to two additional buttons can be added to the pop-up controls row. Each button can be assigned one of: Volume, Seek Step, Audio Output, Sleep Timer, Playback Speed, or Recently Played history.
+
 **Player Selector** — An optional row at the top of the pop-up displays icons for all currently active MPRIS players, allowing switching between players with a single click.
 
 **Pop-up Visualizer** — The audio visualizer can also be displayed inside the pop-up menu, with its own independent bar count (2–64), bar width (1–20 px), and height (20–200 px) settings. A complementary option hides the main pill visualizer when the pop-up is open, creating a visual transfer effect.
@@ -305,6 +307,9 @@ Each of the five interaction types can be assigned one of the following actions:
 | Show Vinyl | Displays the album art image in the pop-up. |
 | Square Vinyl Image | Shows the album art as a square instead of a circle. Disables vinyl rotation. |
 | Show Shuffle and Loop | Displays shuffle and repeat toggle buttons in the pop-up controls. |
+| Enable Custom Buttons | Adds up to two extra buttons to the pop-up controls row. |
+| Custom Button 1 Action | Action for the first custom button: **None**, **Volume**, **Seek Step**, **Audio Output**, **Sleep Timer**, **Playback Speed**, or **Recently Played**. |
+| Custom Button 2 Action | Action for the second custom button: **None**, **Volume**, **Seek Step**, **Audio Output**, **Sleep Timer**, **Playback Speed**, or **Recently Played**. |
 | Show Player Selector | Shows active player icons at the top of the pop-up for one-click player switching. |
 | Use Custom Width | Disables dynamic pop-up sizing and uses a fixed width instead. |
 | Custom Width Value | Fixed width for the pop-up menu in pixels (260–800 px). |
