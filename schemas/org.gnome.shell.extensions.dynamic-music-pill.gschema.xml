@@ -358,5 +358,10 @@
       <summary>Playback History</summary>
       <description>JSON array of recently played tracks (title, artist, artUrl, time).</description>
     </key>
+    <key name="has-seen-first-hint" type="b">
+      <default>false</default>
+      <summary>Has seen first-time settings hint</summary>
+      <description>Whether the user has dismissed the first-time hint in the popup.</description>
+    </key>
   </schema>
 </schemalist>
