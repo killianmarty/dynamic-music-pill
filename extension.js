@@ -3,8 +3,11 @@ import { MusicController } from './controller.js';
 
 export default class DynamicMusicExtension extends Extension {
     enable() {
+        if (this._controller) {
+            this.disable();
+        }
         this._settings = this.getSettings();
-        
+
         this._controller = new MusicController(this);
         this._controller.enable();
     }
