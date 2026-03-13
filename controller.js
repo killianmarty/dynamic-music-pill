@@ -545,11 +545,20 @@ export class MusicController {
         if (targetIndex < 0) targetIndex = 0;
 
         let currentIndex = children.indexOf(this._pill);
+        let pillParent = this._pill.get_parent();
+
+        if (currentIndex === -1 && pillParent === container) {
+            currentIndex = 0;
+        }
+        if (pillParent && pillParent !== container) {
+            pillParent.remove_child(this._pill);
+            currentIndex = -1;
+        }
 
         if (currentIndex !== targetIndex) {
             this._isMovingItem = true;
-            
-            if (currentIndex !== -1) { 
+
+            if (currentIndex !== -1) {
                 container.set_child_at_index(this._pill, targetIndex);
             } else {
                 container.insert_child_at_index(this._pill, targetIndex);
@@ -1746,7 +1755,7 @@ export class MusicController {
             } catch(e) {  }
         }
 
-        this._trackHistory.unshift({ title, artist: artist || '', artUrl: localArtUrl, time: Date.now() });
+        this._trackHistory.unshift({ title, artist: artist || '', artUrl: localArtUrl, time: Date.now(), avgColor: null });
 
         while (this._trackHistory.length > 30) {
             let evicted = this._trackHistory.pop();
