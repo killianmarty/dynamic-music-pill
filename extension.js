@@ -1,5 +1,5 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { MusicController } from './controller.js';
+import { MusicController } from './src/controller.js';
 
 export default class DynamicMusicExtension extends Extension {
     enable() {
