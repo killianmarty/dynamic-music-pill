@@ -116,16 +116,27 @@ export class MusicController {
     }
 
     _createPill() {
-        if (this._pill || this._isShuttingDown || this._isCreatingPill) return;
-        this._isCreatingPill = true;
-        this._pill = new MusicPill(this);
-        this._pill.connect('destroy', () => {
-            this._pill = null;
-            if (!this._isShuttingDown && !this._isCreatingPill) {
-                this._queueInject();
+        if (this._isShuttingDown) return;
+        if (this._isCreatingPill) return;
+        if (this._pill) {
+            try {
+                if (this._pill.get_parent() || !this._pill.is_finalized?.()) return;
+            } catch (e) {
+                this._pill = null;
             }
-        });
-        this._isCreatingPill = false;
+        }
+        this._isCreatingPill = true;
+        try {
+            this._pill = new MusicPill(this);
+            this._pill.connect('destroy', () => {
+                this._pill = null;
+                if (!this._isShuttingDown && !this._isCreatingPill) {
+                    this._queueInject();
+                }
+            });
+        } finally {
+            this._isCreatingPill = false;
+        }
     }
 
     enable() {
@@ -585,7 +596,7 @@ export class MusicController {
         let container = null;
 
         if (target === 0) {
-            let dtd = Main.panel.statusArea['dash-to-dock'];
+            let dtd = Main.panel.statusArea['dash-to-dock'] || Main.panel.statusArea['ubuntu-dock'];
             container = (dtd && dtd._box) ? dtd._box : (Main.overview.dash._box || null);
         } else if (target === 1) container = Main.panel._leftBox;
         else if (target === 2) container = Main.panel._centerBox;
@@ -1177,10 +1188,22 @@ export class MusicController {
         if (!this._pill) this._createPill();
         if (!this._pill) return;
 
+        if (this._pill.get_parent()) {
+            let container = this._pill.get_parent();
+            let duplicates = container.get_children().filter(
+                c => c !== this._pill && c instanceof MusicPill
+            );
+            for (let p of duplicates) {
+                console.debug('[Dynamic Music Pill] Removing duplicate pill from _updateUI');
+                container.remove_child(p);
+                p.destroy();
+            }
+        }
+
         let target = this._settings ? this._settings.get_int('target-container') : 0;
         let container = null;
         if (target === 0) {
-            let dtd = Main.panel.statusArea['dash-to-dock'];
+            let dtd = Main.panel.statusArea['dash-to-dock'] || Main.panel.statusArea['ubuntu-dock'];
             container = (dtd && dtd._box) ? dtd._box : (Main.overview.dash._box || null);
         } else if (target === 1) container = Main.panel._leftBox;
         else if (target === 2) container = Main.panel._centerBox;
@@ -1224,8 +1247,26 @@ export class MusicController {
 
             if (currentArt && typeof currentArt === 'string' && currentArt.trim() !== "") {
                 let isFileUrl = currentArt.startsWith('file://');
-                let fileExists = !isFileUrl || Gio.File.new_for_uri(currentArt).query_exists(null);
-                if (fileExists) {
+                if (isFileUrl) {
+                    let srcFile = Gio.File.new_for_uri(currentArt);
+                    if (srcFile.query_exists(null)) {
+                        let hash = GLib.compute_checksum_for_string(
+                            GLib.ChecksumType.MD5, currentArt, -1);
+                        let cachedPath = GLib.build_filenamev([
+                            this._ownArtCacheDir, hash + '.png']);
+                        let cachedFile = Gio.File.new_for_path(cachedPath);
+                        try {
+                            if (!cachedFile.query_exists(null)) {
+                                srcFile.copy(cachedFile,
+                                    Gio.FileCopyFlags.OVERWRITE, null, null);
+                            }
+                            artUrl = cachedFile.get_uri();
+                        } catch (e) {
+                            artUrl = currentArt;
+                        }
+                        this._artCacheSet(cacheKey, artUrl);
+                    }
+                } else {
                     this._artCacheSet(cacheKey, currentArt);
                     artUrl = currentArt;
                 }

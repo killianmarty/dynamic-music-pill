@@ -91,47 +91,75 @@ export function getClosestGnomeAccent(r, g, b) {
     return closest;
 }
 
-let dtdPopupOpenCount = 0;
+let dtdDisableRequests = 0;
 let _dtdDockManager = null;
+let _dtdImportPromise = null;
 
 export function initDTDModule() {
-    const ext = Main.extensionManager.lookup('dash-to-dock@micxgx.gmail.com');
-    if (!ext) return;
-    import(`file://${ext.path}/extension.js`).then(mod => {
+    let ext = Main.extensionManager.lookup('dash-to-dock@micxgx.gmail.com');
+    if (!ext || ext.state !== 1) {
+        ext = Main.extensionManager.lookup('ubuntu-dock@ubuntu.com');
+    }
+    if (!ext || ext.state !== 1) return null;
+    
+    if (_dtdImportPromise) return _dtdImportPromise;
+    
+    _dtdImportPromise = import(`file://${ext.path}/extension.js`).then(mod => {
         _dtdDockManager = mod.dockManager;
-    }).catch(() => {});
+        if (dtdDisableRequests > 0) {
+            _applyDisable();
+        }
+    }).catch((e) => {
+        console.debug('[Dynamic Music Pill] DTD/Ubuntu Dock import error: ' + e.message);
+        _dtdImportPromise = null;
+    });
+    
+    return _dtdImportPromise;
+}
+
+function _applyDisable() {
+    if (!_dtdDockManager) return;
+    for (const dock of _dtdDockManager._allDocks) {
+        dock.dash.requiresVisibility = true;
+        dock._show();
+    }
 }
 
 export function disableDashToDockAutohide() {
     try {
-        if (!_dtdDockManager) initDTDModule(); 
-        if (!_dtdDockManager) return; 
-        
-        if (dtdPopupOpenCount === 0) {
-            for (const dock of _dtdDockManager._allDocks) {
-                dock.dash.requiresVisibility = true;
-                dock._show();
+        dtdDisableRequests++;
+        if (dtdDisableRequests === 1) {
+            if (_dtdDockManager) {
+                _applyDisable();
+            } else {
+                initDTDModule();
             }
         }
-        dtdPopupOpenCount++;
     } catch (e) {
-        console.debug('[Dynamic Music Pill] DTD disable error: ' + e.message);
+        console.debug('[Dynamic Music Pill] DTD/Ubuntu Dock disable error: ' + e.message);
+    }
+}
+
+function _applyRestore() {
+    if (!_dtdDockManager) return;
+    for (const dock of _dtdDockManager._allDocks) {
+        dock.dash.requiresVisibility = false;
+        dock._updateDashVisibility();
     }
 }
 
 export function restoreDashToDockAutohide() {
     try {
-        if (!_dtdDockManager) initDTDModule();
-        
-        if (dtdPopupOpenCount > 0) dtdPopupOpenCount--;
-        if (dtdPopupOpenCount === 0 && _dtdDockManager) {
-            for (const dock of _dtdDockManager._allDocks) {
-                dock.dash.requiresVisibility = false;
-                dock._updateDashVisibility();
+        if (dtdDisableRequests > 0) {
+            dtdDisableRequests--;
+            if (dtdDisableRequests === 0) {
+                if (_dtdDockManager) {
+                    _applyRestore();
+                }
             }
         }
     } catch (e) {
-        console.debug('[Dynamic Music Pill] DTD restore error: ' + e.message);
+        console.debug('[Dynamic Music Pill] DTD/Ubuntu Dock restore error: ' + e.message);
     }
 }
 

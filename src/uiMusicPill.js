@@ -471,7 +471,9 @@ export const MusicPill = GObject.registerClass(
             let isVisibleAndActive = this._isActuallyVisible && !this._gameModeActive;
 
             if (this._visualizer) {
-                this._visualizer.setPlaying(this._currentStatus === 'Playing' && isVisibleAndActive);
+                let isPlaying = this._currentStatus === 'Playing';
+                let popupOpen = this._controller?._expandedPlayer?.visible;
+                this._visualizer.setPlaying(isPlaying && (isVisibleAndActive || popupOpen));
             }
             if (this._titleScroll) {
                 this._titleScroll.setGameMode(!isVisibleAndActive);
@@ -1238,6 +1240,9 @@ export const MusicPill = GObject.registerClass(
             let targetG = Math.floor(base.g * factor);
             let targetB = Math.floor(base.b * factor);
 
+            let targetBorderOp = (this._currentStatus === 'Playing') ? 0.2 : 0.1;
+            let startBorderOp = (typeof this._currentBorderOp === 'number') ? this._currentBorderOp : targetBorderOp;
+
             let startR = this._displayedColor.r;
             let startG = this._displayedColor.g;
             let startB = this._displayedColor.b;
@@ -1254,8 +1259,9 @@ export const MusicPill = GObject.registerClass(
                 let r = Math.floor(startR + (targetR - startR) * t);
                 let g = Math.floor(startG + (targetG - startG) * t);
                 let b = Math.floor(startB + (targetB - startB) * t);
+                this._currentBorderOp = startBorderOp + (targetBorderOp - startBorderOp) * t;
                 this._applyStyle(r, g, b);
-                if (count >= steps) { this._displayedColor = { r: targetR, g: targetG, b: targetB }; this._colorAnimId = null; return GLib.SOURCE_REMOVE; }
+                if (count >= steps) { this._displayedColor = { r: targetR, g: targetG, b: targetB }; this._currentBorderOp = targetBorderOp; this._colorAnimId = null; return GLib.SOURCE_REMOVE; }
                 return GLib.SOURCE_CONTINUE;
             });
         }
@@ -1289,7 +1295,7 @@ export const MusicPill = GObject.registerClass(
 
             let borderStyle = '';
             if (this._settings.get_boolean('show-pill-border')) {
-                let borderOp = (this._currentStatus === 'Playing') ? 0.2 : 0.1;
+                let borderOp = (typeof this._currentBorderOp === 'number') ? this._currentBorderOp : ((this._currentStatus === 'Playing') ? 0.2 : 0.1);
                 borderStyle = `border-width: 1px; border-style: solid; border-color: rgba(255, 255, 255, ${borderOp});`;
             } else {
                 borderStyle = `border-width: 0px; border-color: transparent;`;
