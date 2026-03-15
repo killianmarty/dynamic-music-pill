@@ -965,6 +965,8 @@ export const ExpandedPlayer = GObject.registerClass(
                     p.destroy();
                     if (this._mainPage) this._mainPage.show();
                     this._box.set_height(-1);
+                    if (this._sliderFill) this._sliderFill.set_width(-1);
+                    this.animateResize();
                 }
             });
         }
@@ -1473,16 +1475,28 @@ export const ExpandedPlayer = GObject.registerClass(
             }
             if (currentPos > length) currentPos = length;
 
-            this._currentTimeLabel.text = formatTime(currentPos);
-            this._totalTimeLabel.text = formatTime(length);
+             let newCurrentText = formatTime(currentPos);
+            if (this._currentTimeLabel.text !== newCurrentText) {
+                this._currentTimeLabel.text = newCurrentText;
+                this._currentTimeLabel.set_width(-1);
+                let [, natWC] = this._currentTimeLabel.get_preferred_width(-1);
+                this._currentTimeLabel.set_width(Math.ceil(natWC) + 2);
+            }
+            let newTotalText = formatTime(length);
+            if (this._totalTimeLabel.text !== newTotalText) {
+                this._totalTimeLabel.text = newTotalText;
+                this._totalTimeLabel.set_width(-1);
+                let [, natWT] = this._totalTimeLabel.get_preferred_width(-1);
+                this._totalTimeLabel.set_width(Math.ceil(natWT) + 2);
+            }
 
             let percent = Math.min(1, Math.max(0, currentPos / length));
             let totalW = Math.round(this._sliderBin.get_width());
 
             if (totalW > 0) {
-                let targetWidth = Math.round(totalW * percent);
+                let targetWidth = Math.max(6, Math.min(totalW, Math.round(totalW * percent)));
                 if (Math.abs(this._sliderFill.width - targetWidth) >= 1) {
-                    this._sliderFill.width = Math.max(6, targetWidth);
+                    this._sliderFill.width = targetWidth;
                 }
             }
         }
@@ -1618,6 +1632,7 @@ export const ExpandedPlayer = GObject.registerClass(
 
         animateResize() {
             if (!this._box || !this._controller || !this._controller._pill) return;
+            if (this._currentSubPage) return;
 
             if (this._resizeDebounceId) {
                 GLib.Source.remove(this._resizeDebounceId);
