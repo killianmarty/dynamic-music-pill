@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-13 16:36+0100\n"
-"PO-Revision-Date: 2026-03-12 18:09+0000\n"
+"PO-Revision-Date: 2026-03-16 09:09+0000\n"
 "Last-Translator: Christian Lauinger <christian.lauinger@gmail.com>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/de/>\n"
@@ -29,7 +29,7 @@ msgstr "Auto (Smart)"
 
 #: controller.js:1554 controller.js:1572 controller.js:1595 controller.js:1621
 msgid "Not supported"
-msgstr ""
+msgstr "Nicht unterstützt"
 
 #: prefs.js:37
 msgid "Main Pill"
@@ -266,11 +266,13 @@ msgstr "Dreht das Albumcover beim Spielen"
 
 #: prefs.js:361
 msgid "Rotation Speed"
-msgstr ""
+msgstr "Rotationsgeschwindigkeit"
 
 #: prefs.js:362
 msgid "Adjust the vinyl spin speed (Lower is slower, Default: 10)"
 msgstr ""
+"Stelle die Drehzahl der Schallplatte ein (niedrigerer Wert bedeutet "
+"langsamer, Standard: 10)"
 
 #: prefs.js:370 prefs.js:741
 msgid "Enable Shadow"
@@ -397,65 +399,71 @@ msgstr "Höhe des Popup-Visualizers"
 
 #: prefs.js:532
 msgid "Custom Control Buttons"
-msgstr ""
+msgstr "Benutzerdefinierte Steuerelemente"
 
 #: prefs.js:533
 msgid "Add up to two extra buttons in the expanded player's controls row."
 msgstr ""
+"Füge bis zu zwei zusätzliche Schaltflächen in der Steuerungsleiste des "
+"erweiterten Players hinzu."
 
 #: prefs.js:537
 msgid "Enable Custom Buttons"
-msgstr ""
+msgstr "Benutzerdefinierte Schaltflächen aktivieren"
 
 #: prefs.js:538
 msgid "Show additional action buttons next to Shuffle and Loop"
 msgstr ""
+"Zusätzliche Aktionsschaltflächen neben „Zufällig“ und „Wiederholen“ anzeigen"
 
 #: prefs.js:550
 msgid "Volume Control"
-msgstr ""
+msgstr "Lautstärkeregelung"
 
 #: prefs.js:551
 msgid "Seek ±10 Seconds"
-msgstr ""
+msgstr "Suche ±10 Sekunden"
 
 #: prefs.js:552
 msgid "Audio Output Switcher"
-msgstr ""
+msgstr "Audioausgangsumschalter"
 
 #: prefs.js:553 ui.js:2006
 msgid "Sleep Timer"
-msgstr ""
+msgstr "Ausschalt-Timer"
 
 #: prefs.js:554 ui.js:2046
 msgid "Playback Speed"
-msgstr ""
+msgstr "Wiedergabegeschwindigkeit"
 
 #: prefs.js:555
 msgid "Track History"
-msgstr ""
+msgstr "Verlauf"
 
 #: prefs.js:586
 msgid ""
 "If both buttons are set to Seek, they act directly (Button 1 = −10s, Button "
 "2 = +10s). Otherwise Seek opens a sub-page."
 msgstr ""
+"Wenn beide Schaltflächen auf „Suchen“ eingestellt sind, wirken sie direkt "
+"(Schaltfläche 1 = −10 s, Schaltfläche 2 = +10 s). Andernfalls öffnet „Suchen"
+"“ eine Unterseite."
 
 #: prefs.js:589
 msgid "Custom Button 1"
-msgstr ""
+msgstr "Benutzerdefinierte Schaltfläche 1"
 
 #: prefs.js:589
 msgid "Placed left of Shuffle."
-msgstr ""
+msgstr "Links neben „Mischen“ platziert."
 
 #: prefs.js:592
 msgid "Custom Button 2"
-msgstr ""
+msgstr "Benutzerdefinierte Schaltfläche 2"
 
 #: prefs.js:592
 msgid "Placed right of Loop."
-msgstr ""
+msgstr "Rechts von Wiederholen platziert."
 
 #: prefs.js:603
 msgid "Style & Layout"
@@ -532,11 +540,11 @@ msgstr "Abstand zwischen dem Text und der Wellenanimation"
 
 #: prefs.js:666
 msgid "Outer Edge Margin"
-msgstr ""
+msgstr "Außenrand"
 
 #: prefs.js:667
 msgid "Spacing before the album art and after the visualizer"
-msgstr ""
+msgstr "Abstand vor dem Albumcover und nach dem Visualizer"
 
 #: prefs.js:674
 msgid "Corner Radius"
@@ -710,11 +718,11 @@ msgstr "Benutzerdefinierte Farben"
 
 #: prefs.js:881
 msgid "Sync GNOME Accent Color"
-msgstr ""
+msgstr "GNOME-Akzentfarbe synchronisieren"
 
 #: prefs.js:882
 msgid "Dynamically change the GNOME Shell accent color to match the album art"
-msgstr ""
+msgstr "Die Akzentfarbe der GNOME Shell dynamisch an das Albumcover anpassen"
 
 #: prefs.js:892
 msgid "Use Custom Colors"
@@ -942,19 +950,19 @@ msgstr "Einstellungen öffnen Sicherung"
 
 #: prefs.js:1356
 msgid "Art Cache"
-msgstr ""
+msgstr "Zwischenspeicher"
 
 #: prefs.js:1378
 msgid "covers cached"
-msgstr ""
+msgstr "Cover zwischengespeichert"
 
 #: prefs.js:1381
 msgid "Album Art Cache"
-msgstr ""
+msgstr "Zwischenspeicher für Albumcover"
 
 #: prefs.js:1386
 msgid "Clear"
-msgstr ""
+msgstr "Leeren"
 
 #: prefs.js:1408
 msgid "Danger Zone"
@@ -1015,6 +1023,8 @@ msgstr "Bitte installieren Sie „cava” für den Echtzeitmodus."
 #: ui.js:1201
 msgid "First time? Check settings for custom buttons, scroll actions & more"
 msgstr ""
+"Zum ersten Mal hier? Überprüfe die Einstellungen für benutzerdefinierte "
+"Schaltflächen, Scroll-Aktionen und mehr"
 
 #: ui.js:1488
 msgid "Unknown Title"
@@ -1026,91 +1036,92 @@ msgstr "Unbekannter Künstler"
 
 #: ui.js:1872
 msgid "Volume"
-msgstr ""
+msgstr "Lautstärke"
 
 #: ui.js:1876
 msgid "No audio stream available"
-msgstr ""
+msgstr "Es ist kein Audiostream verfügbar"
 
 #: ui.js:1901 ui.js:1911
 msgid "Unmute"
-msgstr ""
+msgstr "Stummschalten rückgängig"
 
 #: ui.js:1901 ui.js:1911
 msgid "Mute"
-msgstr ""
+msgstr "Stummschalten"
 
 #: ui.js:1947
 msgid "Seek"
-msgstr ""
+msgstr "Suchen"
 
 #: ui.js:1951
 msgid "This player does not support seeking"
-msgstr ""
+msgstr "Dieser Spieler unterstützt keine Positionssprungfunktion"
 
 #: ui.js:1977
 msgid "Audio Output"
-msgstr ""
+msgstr "Audioausgang"
 
 #: ui.js:1979
 msgid "Audio control unavailable"
-msgstr ""
+msgstr "Audiosteuerung nicht verfügbar"
 
 #: ui.js:1982
 msgid "No output devices found"
-msgstr ""
+msgstr "Es wurden keine Ausgabegeräte gefunden"
 
 #: ui.js:1985
 msgid "Unknown Device"
-msgstr ""
+msgstr "Unbekanntes Gerät"
 
 #: ui.js:2006
 msgid "min left"
-msgstr ""
+msgstr "noch Minuten"
 
 #: ui.js:2009
 msgid "Cancel Timer"
-msgstr ""
+msgstr "Timer abbrechen"
 
 #: ui.js:2041
 msgid "Runs inside the shell — works on lock screen"
 msgstr ""
+"Wird innerhalb der Shell ausgeführt – funktioniert auf dem Sperrbildschirm"
 
 #: ui.js:2053
 msgid "This player does not support playback speed"
-msgstr ""
+msgstr "Dieser Player unterstützt keine Wiedergabegeschwindigkeit"
 
 #: ui.js:2092
 msgid "Player must support MPRIS Rate"
-msgstr ""
+msgstr "Der Player muss die MPRIS-Rate unterstützen"
 
 #: ui.js:2092
 msgid "Not supported by this player"
-msgstr ""
+msgstr "Wird von diesem Player nicht unterstützt"
 
 #: ui.js:2098
 msgid "Recently Played"
-msgstr ""
+msgstr "Zuletzt gespielt"
 
 #: ui.js:2100
 msgid "No history yet"
-msgstr ""
+msgstr "Noch keine Einträge"
 
 #: ui.js:2133
 msgid "Unknown"
-msgstr ""
+msgstr "Unbekannt"
 
 #: ui.js:2186
 msgid "Clear History"
-msgstr ""
+msgstr "Verlauf leeren"
 
 #: ui.js:3281 ui.js:3527
 msgid "No Media"
-msgstr ""
+msgstr "Keine Medien"
 
 #: ui.js:3528
 msgid "Waiting for playback..."
-msgstr ""
+msgstr "Warten auf die Wiedergabe..."
 
 #: ui.js:3732
 msgid "Loading..."
