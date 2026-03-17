@@ -195,6 +195,16 @@ export class MusicController {
                 this._triggerUpdate();
             }
         }, this);
+        this._settings.connectObject('changed::lyrics-language-preference', () => {
+        	    this._fetchedTrackKey = null;
+        	    this._fetchedLyricsData = null;
+        	    this._lastLyricIndex = -1;
+
+        	    if (this._settings.get_boolean('enable-lyrics') && !this._dbusLyricActive) {
+        		let player = this._getActivePlayer();
+        		if (player) this._fetchNetworkLyrics(player);
+        	    }
+        	}, this);
     }
 
     disable() {
@@ -784,8 +794,10 @@ export class MusicController {
                     p._lastTrackId = null;
 
                     p._seekedId = p.connectSignal('Seeked', (proxy, senderName, [position]) => {
-                        p._lastPosition = position;
-                        p._lastPositionTime = Date.now();
+                        if (typeof position === 'number' && position >= 0) {
+                            p._lastPosition = position;
+                            p._lastPositionTime = Date.now();
+                        }
                         this._triggerUpdate();
                         if (this._expandedPlayer && this._expandedPlayer.visible && this._lastWinnerName === p._busName) {
                             this._expandedPlayer._tick();
@@ -826,7 +838,9 @@ export class MusicController {
                                 
                                 if (trackId && trackId !== p._lastTrackId) {
                                     p._lastPosition = 0;
+                                    p._lastPositionTime = Date.now();
                                     p._lastTrackId = trackId;
+                                    trackChanged = true;
                                 }
                             }
 
@@ -844,8 +858,11 @@ export class MusicController {
                                             if (result) {
                                                 let posVariant = result.deep_unpack()[0];
                                                 if (posVariant) {
-                                                    p._lastPosition = posVariant instanceof GLib.Variant ? posVariant.unpack() : posVariant;
-                                                    p._lastPositionTime = Date.now();
+                                                    let val = posVariant instanceof GLib.Variant ? posVariant.unpack() : posVariant;
+                                                    if (typeof val === 'number' && val >= 0) {
+                                                        p._lastPosition = val;
+                                                        p._lastPositionTime = Date.now();
+                                                    }
                                                     this._triggerUpdate();
                                                 }
                                             }
@@ -906,8 +923,11 @@ export class MusicController {
                                 if (result) {
                                     let posVariant = result.deep_unpack()[0];
                                     if (posVariant) {
-                                        p._lastPosition = posVariant instanceof GLib.Variant ? posVariant.unpack() : posVariant;
-                                        p._lastPositionTime = Date.now();
+                                        let val = posVariant instanceof GLib.Variant ? posVariant.unpack() : posVariant;
+                                        if (typeof val === 'number' && val >= 0) {
+                                            p._lastPosition = val;
+                                            p._lastPositionTime = Date.now();
+                                        }
                                     }
                                 }
                             } catch (e) { console.debug(e.message); }
@@ -1052,17 +1072,6 @@ export class MusicController {
         if (!title) return;
 
         let trackKey = `${title}||${artist}`;
-
-        this._settings.connectObject('changed::lyrics-language-preference', () => {
-	    this._fetchedTrackKey = null;
-	    this._fetchedLyricsData = null;
-	    this._lastLyricIndex = -1;
-
-	    if (this._settings.get_boolean('enable-lyrics') && !this._dbusLyricActive) {
-		let player = this._getActivePlayer();
-		if (player) this._fetchNetworkLyrics(player);
-	    }
-	}, this);
 
         this._fetchedTrackKey = trackKey;
         this._fetchedLyricsData = null; 
