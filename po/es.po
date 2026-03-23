@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-23 23:42+0100\n"
-"PO-Revision-Date: 2026-02-26 18:12+0000\n"
-"Last-Translator: Elsie <hwengerstickel@protonmail.com>\n"
+"PO-Revision-Date: 2026-03-25 00:09+0000\n"
+"Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/es/>\n"
 "Language: es\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.16.1-dev\n"
+"X-Generator: Weblate 5.17-dev\n"
 
 #: src/controller.js:1378
 msgid "Unknown Player"
@@ -514,11 +514,11 @@ msgstr ""
 
 #: prefs.js:516
 msgid "Show Visualizer in Pop-up"
-msgstr "Visualizador y forma"
+msgstr ""
 
 #: prefs.js:523
 msgid "Hide Pill Visualizer"
-msgstr "Aplicar al visualizador"
+msgstr ""
 
 #: prefs.js:524
 msgid "Creates a \"moving\" effect by hiding the main pill visualizer"
