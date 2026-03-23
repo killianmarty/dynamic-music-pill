@@ -1461,8 +1461,8 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                 expanded: true,
                 notes: "✨ New Features:\n" +
                        "• Custom Control Buttons: Add up to two extra buttons to the pop-up controls row. Each can be assigned to Volume, Seek Step, Audio Output, Sleep Timer, Playback Speed, or Recently Played history.\n" +
-                       "• First-Time Hint: A one-time tip in the pop-up suggests checking settings for more options (custom buttons, scroll actions, etc.). Dismissible with a click or via the settings button.\n\n" +
-					   "• Scroll on Hover Only: A new setting to scroll long text only when hovering over the pill.\n" +
+                       "• First-Time Hint: A one-time tip in the pop-up suggests checking settings for more options (custom buttons, scroll actions, etc.). Dismissible with a click or via the settings button.\n" +
+					   "• Scroll on Hover Only: A new setting to scroll long text only when hovering over the pill.\n\n" +
                        "🐛 Bug Fixes:\n" +
 					   "• Fixed GNOME Shell freezes (metadata crash) when player state unexpectedly becomes undefined.\n" +
                        "• Fixed History showing incorrect album art for slow players (Zen Browser/Web apps) and prevents rapid-skip duplicates.\n" +
