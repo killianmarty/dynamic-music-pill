@@ -1581,8 +1581,8 @@ export const ExpandedPlayer = GObject.registerClass(
 
             let status = player.PlaybackStatus;
             let m = player.Metadata;
-            let title = smartUnpack(m['xesam:title']);
-            let artist = smartUnpack(m['xesam:artist']);
+            let title = m ? smartUnpack(m['xesam:title']) : null;
+            let artist = m ? smartUnpack(m['xesam:artist']) : null;
             if (Array.isArray(artist)) artist = artist.join(', ');
 
             this.updateContent(title, artist, artUrl, status);
@@ -1680,6 +1680,7 @@ export const ExpandedPlayer = GObject.registerClass(
         }
 
         _tick() {
+          try {
             if (!this._player || !this.get_parent()) return GLib.SOURCE_REMOVE;
 
             let meta = this._player.Metadata;
@@ -1722,6 +1723,9 @@ export const ExpandedPlayer = GObject.registerClass(
                     this._sliderFill.width = targetWidth;
                 }
             }
+          } catch (e) {
+              console.debug(`[Dynamic Music Pill] _tick error: ${e.message}`);
+          }
         }
 
         _handleSeek(event) {

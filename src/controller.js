@@ -209,6 +209,18 @@ export class MusicController {
 
     disable() {
         this._isShuttingDown = true;
+        if (this._artMonitor) {
+            this._artMonitor.cancel();
+            this._artMonitor = null;
+        }
+        if (this._artMonitorDebounce) {
+            GLib.Source.remove(this._artMonitorDebounce);
+            this._artMonitorDebounce = null;
+        }
+        if (this._retryArtTimer) {
+            GLib.Source.remove(this._retryArtTimer);
+            this._retryArtTimer = null;
+        }
         if (this._startupCompleteId) {
             Main.layoutManager.disconnect(this._startupCompleteId);
             this._startupCompleteId = null;
@@ -1203,7 +1215,46 @@ export class MusicController {
         });
     }
 
+    _monitorArtFile(artUri) {
+        if (!artUri || !artUri.startsWith('file://')) {
+            if (this._artMonitor) {
+                this._artMonitor.cancel();
+                this._artMonitor = null;
+            }
+            this._monitoredArtUri = null;
+            return;
+        }
+
+        if (this._monitoredArtUri === artUri) return;
+
+        if (this._artMonitor) {
+            this._artMonitor.cancel();
+            this._artMonitor = null;
+        }
+
+        this._monitoredArtUri = artUri;
+        try {
+            let file = Gio.File.new_for_uri(artUri);
+            this._artMonitor = file.monitor_file(Gio.FileMonitorFlags.NONE, null);
+            this._artMonitor.connect('changed', (monitor, file, otherFile, eventType) => {
+                if (eventType === Gio.FileMonitorEvent.CHANGES_DONE_HINT || eventType === Gio.FileMonitorEvent.CREATED) {
+                    if (this._artMonitorDebounce) {
+                        GLib.Source.remove(this._artMonitorDebounce);
+                    }
+                    this._artMonitorDebounce = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+                        this._artMonitorDebounce = null;
+                        this._updateUI();
+                        return GLib.SOURCE_REMOVE;
+                    });
+                }
+            });
+        } catch (e) {
+            console.debug('[Dynamic Music Pill] Failed to setup art monitor: ' + e);
+        }
+    }
+
     _updateUI() {
+      try {
         if (this._recheckTimer) {
             GLib.Source.remove(this._recheckTimer);
             this._recheckTimer = null;
@@ -1267,27 +1318,92 @@ export class MusicController {
             }
 
             let rawName = active._busName || "";
-            let cacheKey = rawName.includes('.instance') ? rawName.split('.instance')[0] : rawName;
+            let cacheKey = (rawName.includes('.instance') ? rawName.split('.instance')[0] : rawName) + '|' + (title || '');
+
+            this._monitorArtFile(currentArt);
 
             if (currentArt && typeof currentArt === 'string' && currentArt.trim() !== "") {
 	    let isFileUrl = currentArt.startsWith('file://');
 	    if (isFileUrl) {
 		let srcFile = Gio.File.new_for_uri(currentArt);
 		if (srcFile.query_exists(null)) {
-		    let hashSource = currentArt + '|' + (title || '') + '|' + (artist || '');
+		    let srcTimeStr = '';
+		    try {
+		        let srcInfo = srcFile.query_info(Gio.FILE_ATTRIBUTE_TIME_MODIFIED, Gio.FileQueryInfoFlags.NONE, null);
+		        if (srcInfo) {
+		            srcTimeStr = srcInfo.get_attribute_uint64(Gio.FILE_ATTRIBUTE_TIME_MODIFIED).toString();
+		        }
+		    } catch (e) {}
+		    let hashSource = currentArt + '|' + (title || '') + '|' + (artist || '') + '|' + srcTimeStr;
 		    let hash = GLib.compute_checksum_for_string(
 		        GLib.ChecksumType.MD5, hashSource, -1);
 		    let cachedPath = GLib.build_filenamev([
 		        this._ownArtCacheDir, hash + '.png']);
 		    let cachedFile = Gio.File.new_for_path(cachedPath);
-		    try {
-		        srcFile.copy(cachedFile,
-		            Gio.FileCopyFlags.OVERWRITE, null, null);
+            
+            let info = null;
+            if (cachedFile.query_exists(null)) {
+                try {
+                    info = cachedFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
+                } catch (e) {}
+            }
+		    if (info && info.get_size() > 0) {
 		        artUrl = cachedFile.get_uri();
-		    } catch (e) {
-		        artUrl = currentArt;
+                this._artCacheSet(cacheKey, artUrl);
+		    } else {
+                if (cachedFile.query_exists(null)) cachedFile.delete(null);
+
+		        artUrl = (this._pill && this._pill._lastArtUrl) ? this._pill._lastArtUrl : null;
+		        srcFile.copy_async(cachedFile,
+		            Gio.FileCopyFlags.OVERWRITE, GLib.PRIORITY_DEFAULT, null, null,
+		            (src, res) => {
+                        let success = false;
+		                try {
+		                    src.copy_finish(res);
+                            let cInfo = cachedFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
+                            if (cInfo && cInfo.get_size() > 0) success = true;
+		                } catch (e) { }
+
+                        if (success) {
+		                    let newUri = cachedFile.get_uri();
+		                    this._artCacheSet(cacheKey, newUri);
+		                    if (this._pill && this._pill._lastArtUrl !== newUri && this._getActivePlayer()) {
+		                        GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+		                            this._updateUI();
+		                            return GLib.SOURCE_REMOVE;
+		                        });
+		                    }
+                        } else {
+                            // Fallback exactly to original plugin's crash-catcher behavior:
+                            // If GIO cannot copy it (sandboxed Flatpak scopes or strictly locked files), GTK might still be able to internally render the naked URI!
+                            this._artCacheSet(cacheKey, currentArt);
+                            if (this._pill && this._pill._lastArtUrl !== currentArt && this._getActivePlayer()) {
+                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                    this._pill.showFor(title, artist, currentArt, active.PlaybackStatus, active._busName, false, active);
+                                    return GLib.SOURCE_REMOVE;
+                                });
+                            }
+
+                            if (this._getActivePlayer()) {
+                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                    if (!this._retryArtTimer) {
+                                        this._retryArtTimerCount = 0;
+                                        this._retryArtTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                                            this._retryArtTimerCount++;
+                                            if (this._retryArtTimerCount > 10 || !this._pill || (this._pill.is_finalized && this._pill.is_finalized())) {
+                                                this._retryArtTimer = null;
+                                                return GLib.SOURCE_REMOVE;
+                                            }
+                                            this._updateUI();
+                                            return GLib.SOURCE_CONTINUE;
+                                        });
+                                    }
+                                    return GLib.SOURCE_REMOVE;
+                                });
+                            }
+                        }
+		            });
 		    }
-		    this._artCacheSet(cacheKey, artUrl);
 		}
 	    } else {
 		this._artCacheSet(cacheKey, currentArt);
@@ -1339,14 +1455,36 @@ export class MusicController {
                 this._recordHistory(title, artist, artUrl);
             }
 
-            if (!artUrl && active.PlaybackStatus === 'Playing' && !this._retryArtTimer) {
+            let needsRetry = false;
+            if (currentArt && currentArt.startsWith('file://')) {
+                let srcFile = Gio.File.new_for_uri(currentArt);
+                if (!srcFile.query_exists(null)) {
+                    needsRetry = true;
+                } else {
+                    let info = null;
+                    try {
+                        info = srcFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
+                    } catch (e) {}
+                    if (info && info.get_size() === 0) needsRetry = true;
+                }
+            }
+
+            if (needsRetry && active.PlaybackStatus === 'Playing' && !this._retryArtTimer) {
+                this._retryArtTimerCount = 0;
                 this._retryArtTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                    this._retryArtTimer = null;
+                    this._retryArtTimerCount++;
+                    if (this._retryArtTimerCount > 10 || !this._pill || (this._pill.is_finalized && this._pill.is_finalized())) {
+                        this._retryArtTimer = null;
+                        return GLib.SOURCE_REMOVE;
+                    }
                     if (this._proxies.has(active._busName)) {
                         this._updateUI();
                     }
-                    return GLib.SOURCE_REMOVE;
+                    return GLib.SOURCE_CONTINUE;
                 });
+            } else if (!needsRetry && this._retryArtTimer) {
+                GLib.Source.remove(this._retryArtTimer);
+                this._retryArtTimer = null;
             }
 
             let now = Date.now();
@@ -1373,7 +1511,14 @@ export class MusicController {
                 }
             }
 
-            this._pill.updateDisplay(title, artist, artUrl, active.PlaybackStatus, active._busName, isSkipActive, active);
+            let finalDisplayArt = artUrl;
+            if (this._pill && !finalDisplayArt && active.PlaybackStatus === 'Playing' && (needsRetry || this._retryArtTimer)) {
+                if (this._pill._lastArtUrl) {
+                    finalDisplayArt = this._pill._lastArtUrl;
+                }
+            }
+
+            this._pill.updateDisplay(title, artist, finalDisplayArt, active.PlaybackStatus, active._busName, isSkipActive, active);
         } else {
             this._stopLyricsTimer();
             this._fetchedTrackKey = null;
@@ -1383,6 +1528,9 @@ export class MusicController {
             this._lastPositionSync = 0;
             this._pill.updateDisplay(null, null, null, 'Stopped', null, false);
         }
+      } catch (e) {
+          console.debug(`[Dynamic Music Pill] _updateUI error: ${e.message}`);
+      }
     }
     
     _isPlayerAllowed(busName) {
@@ -1403,6 +1551,7 @@ export class MusicController {
     }
 
     _getActivePlayer() {
+      try {
         let proxiesArr = Array.from(this._proxies.values());
         if (proxiesArr.length === 0) return null;
         let manualBus = this._settings.get_string('selected-player-bus');
@@ -1426,18 +1575,26 @@ export class MusicController {
             let m = p.Metadata;
 
             if (m) {
-                let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
-                let url = metaObj['xesam:url'] ? smartUnpack(metaObj['xesam:url']).toLowerCase() : "";
-                
-                let isWebContent = url.startsWith('http://') || url.startsWith('https://');
+                try {
+                    let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
+                    let url = metaObj['xesam:url'] ? smartUnpack(metaObj['xesam:url']).toLowerCase() : "";
+                    
+                    let isWebContent = url.startsWith('http://') || url.startsWith('https://');
 
-                if (isWebContent && filterMode === 2) {
-                    let urlMatch = filterList.some(item => url.includes(item));
-                    if (!urlMatch) return { player: p, score: -1 };
-                }
+                    if (isWebContent && filterMode === 2) {
+                        let urlMatch = filterList.some(item => url.includes(item));
+                        if (!urlMatch) return { player: p, score: -1 };
+                    }
+                } catch (e) { /* metadata access failed, treat as no metadata */ }
             }
 
-            let hasTitle = m && smartUnpack(m['xesam:title']);
+            let hasTitle = false;
+            if (m) {
+                try {
+                    let mu = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
+                    hasTitle = !!smartUnpack(mu['xesam:title']);
+                } catch (e) { hasTitle = false; }
+            }
             if (status === 'Playing' && hasTitle) score = 500;
             else if (status === 'Paused' && hasTitle) score = 100;
             return { player: p, score: score };
@@ -1452,10 +1609,22 @@ export class MusicController {
 
         let winner = scoredPlayers[0].player;
         if (winner.PlaybackStatus !== 'Playing') {
-            let anyPlaying = scoredPlayers.find(s => s.score > 0 && s.player.PlaybackStatus === 'Playing' && smartUnpack(s.player.Metadata['xesam:title']));
+            let anyPlaying = scoredPlayers.find(s => {
+                if (s.score <= 0 || s.player.PlaybackStatus !== 'Playing') return false;
+                try {
+                    let md = s.player.Metadata;
+                    if (!md) return false;
+                    let mdu = (md instanceof GLib.Variant) ? md.deep_unpack() : md;
+                    return !!smartUnpack(mdu['xesam:title']);
+                } catch (e) { return false; }
+            });
             if (anyPlaying) winner = anyPlaying.player;
         }
         return winner;
+      } catch (e) {
+          console.debug(`[Dynamic Music Pill] _getActivePlayer error: ${e.message}`);
+          return null;
+      }
     }
 
     togglePlayback() { let p = this._getActivePlayer(); if (p) p.PlayPauseRemote(); }
@@ -1812,29 +1981,37 @@ export class MusicController {
 
     _recordHistory(title, artist, artUrl) {
         if (!title) return;
+        let now = Date.now();
         if (this._trackHistory.length > 0) {
             let last = this._trackHistory[0];
-            if (last.title === title && last.artist === artist) return;
+            if (last.title === title && last.artist === artist && (now - last.time) < 30000) {
+                if (artUrl && last.artUrl !== artUrl) {
+                    this._trackHistory.shift();
+                } else {
+                    return;
+                }
+            }
         }
 
         let localArtUrl = artUrl || '';
         if (artUrl && artUrl.startsWith('file://')) {
             try {
                 let hashKey = GLib.compute_checksum_for_string(
-                    GLib.ChecksumType.MD5, title + '|' + (artist || ''), -1);
+                    GLib.ChecksumType.MD5, title + '|' + (artist || '') + '|' + artUrl, -1);
                 let cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'dynamic-music-pill', 'art']);
                 GLib.mkdir_with_parents(cacheDir, 0o755);
                 let destPath = GLib.build_filenamev([cacheDir, 'hist_' + hashKey + '.jpg']);
                 let srcFile  = Gio.File.new_for_uri(artUrl);
                 let destFile = Gio.File.new_for_path(destPath);
-                if (!destFile.query_exists(null)) {
-                    srcFile.copy(destFile, Gio.FileCopyFlags.NONE, null, null);
-                }
+                srcFile.copy_async(destFile, Gio.FileCopyFlags.OVERWRITE,
+                    GLib.PRIORITY_DEFAULT, null, null, (src, res) => {
+                        try { src.copy_finish(res); } catch (e) { /* ignore */ }
+                    });
                 localArtUrl = destFile.get_uri();
             } catch(e) {  }
         }
 
-        this._trackHistory.unshift({ title, artist: artist || '', artUrl: localArtUrl, time: Date.now(), avgColor: null });
+        this._trackHistory.unshift({ title, artist: artist || '', artUrl: localArtUrl, time: now, avgColor: null });
 
         while (this._trackHistory.length > 30) {
             let evicted = this._trackHistory.pop();

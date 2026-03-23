@@ -217,6 +217,11 @@
       <default>true</default>
       <summary>Scrolling Text</summary>
     </key>
+    <key name="scroll-on-hover-only" type="b">
+      <default>false</default>
+      <summary>Scroll Text Only on Hover</summary>
+      <description>When enabled, text only scrolls while hovering over the pill.</description>
+    </key>
     <key name="enable-transparency" type="b">
       <default>false</default>
       <summary>Enable Transparency</summary>

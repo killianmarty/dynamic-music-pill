@@ -9,7 +9,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
         const PREFS_KEYS = [
-            'scroll-text', 'show-album-art', 'enable-shadow', 'hide-default-player',
+            'scroll-text', 'scroll-on-hover-only', 'show-album-art', 'enable-shadow', 'hide-default-player',
             'shadow-blur', 'shadow-opacity', 'pill-width', 'panel-pill-width',
             'pill-height', 'panel-pill-height', 'vertical-offset', 'horizontal-offset', 
             'position-mode', 'dock-position', 'target-container', 'enable-gamemode', 
@@ -203,6 +203,19 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         settings.bind('scroll-text', scrollTextToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
         scrollTextRow.add_suffix(scrollTextToggle);
         genGroup.add(scrollTextRow);
+
+        const scrollHoverRow = new Adw.ActionRow({
+            title: _('Scroll Only on Hover'),
+            subtitle: _('Text stays still until you hover the pill')
+        });
+        const scrollHoverToggle = new Gtk.Switch({
+            active: settings.get_boolean('scroll-on-hover-only'),
+            valign: Gtk.Align.CENTER
+        });
+        settings.bind('scroll-on-hover-only', scrollHoverToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
+        settings.bind('scroll-text', scrollHoverRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        scrollHoverRow.add_suffix(scrollHoverToggle);
+        genGroup.add(scrollHoverRow);
 
 		// Lyrics Display
         const lyricsRow = new Adw.ActionRow({

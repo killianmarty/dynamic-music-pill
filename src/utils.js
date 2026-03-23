@@ -93,6 +93,7 @@ export function getClosestGnomeAccent(r, g, b) {
 
 let dtdDisableRequests = 0;
 let _dtdDockManager = null;
+let _dtdModule = null;
 let _dtdImportPromise = null;
 
 export function initDTDModule() {
@@ -105,6 +106,7 @@ export function initDTDModule() {
     if (_dtdImportPromise) return _dtdImportPromise;
     
     _dtdImportPromise = import(`file://${ext.path}/extension.js`).then(mod => {
+        _dtdModule = mod;
         _dtdDockManager = mod.dockManager;
         if (dtdDisableRequests > 0) {
             _applyDisable();
@@ -117,11 +119,22 @@ export function initDTDModule() {
     return _dtdImportPromise;
 }
 
+function _refreshDockManager() {
+    if (_dtdModule && _dtdModule.dockManager) {
+        _dtdDockManager = _dtdModule.dockManager;
+    }
+}
+
 function _applyDisable() {
+    _refreshDockManager();
     if (!_dtdDockManager) return;
-    for (const dock of _dtdDockManager._allDocks) {
-        dock.dash.requiresVisibility = true;
-        dock._show();
+    try {
+        for (const dock of _dtdDockManager._allDocks) {
+            dock.dash.requiresVisibility = true;
+            dock._show();
+        }
+    } catch (e) {
+        console.debug('[Dynamic Music Pill] DTD _applyDisable error: ' + e.message);
     }
 }
 
@@ -141,10 +154,15 @@ export function disableDashToDockAutohide() {
 }
 
 function _applyRestore() {
+    _refreshDockManager();
     if (!_dtdDockManager) return;
-    for (const dock of _dtdDockManager._allDocks) {
-        dock.dash.requiresVisibility = false;
-        dock._updateDashVisibility();
+    try {
+        for (const dock of _dtdDockManager._allDocks) {
+            dock.dash.requiresVisibility = false;
+            dock._updateDashVisibility();
+        }
+    } catch (e) {
+        console.debug('[Dynamic Music Pill] DTD _applyRestore error: ' + e.message);
     }
 }
 

@@ -198,6 +198,9 @@ export const MusicPill = GObject.registerClass(
             }, this);
 
             this.connectObject('enter-event', () => {
+                this._isHovered = true;
+                if (this._titleScroll) this._titleScroll.setHoverMode(true);
+                if (this._artistScroll) this._artistScroll.setHoverMode(true);
                 let delay = this._settings.get_int('hover-delay');
                 if (this._hoverTimeout) { GLib.Source.remove(this._hoverTimeout); }
                 this._hoverTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
@@ -212,6 +215,9 @@ export const MusicPill = GObject.registerClass(
             }, this);
 
             this.connectObject('leave-event', () => {
+                this._isHovered = false;
+                if (this._titleScroll) this._titleScroll.setHoverMode(false);
+                if (this._artistScroll) this._artistScroll.setHoverMode(false);
                 if (this._hoverTimeout) {
                     GLib.Source.remove(this._hoverTimeout);
                     this._hoverTimeout = null;
@@ -1157,8 +1163,17 @@ export const MusicPill = GObject.registerClass(
                 } else {
                     this._updateArtVisibility();
                 }
-            } else if (statusChanged) {
-                this._startColorTransition();
+            } else {
+                if (statusChanged) {
+                    this._startColorTransition();
+                }
+                if (this._controller && this._controller._trackHistory && this._controller._trackHistory.length > 0) {
+                    let entry = this._controller._trackHistory[0];
+                    if (!entry.avgColor && this._targetColor) {
+                        entry.avgColor = { r: Math.round(this._targetColor.r), g: Math.round(this._targetColor.g), b: Math.round(this._targetColor.b) };
+                        try { this._controller._settings.set_string('playback-history', JSON.stringify(this._controller._trackHistory)); } catch (e) { }
+                    }
+                }
             }
 
             if (this._controller._expandedPlayer && this._controller._expandedPlayer.visible) {
@@ -1195,9 +1210,12 @@ export const MusicPill = GObject.registerClass(
 
         _loadColorFromArt(artUrl) {
             let file = Gio.File.new_for_uri(artUrl);
-            if (!this._cancellable) this._cancellable = new Gio.Cancellable();
+            if (this._colorCancellable) {
+                this._colorCancellable.cancel();
+            }
+            this._colorCancellable = new Gio.Cancellable();
 
-            file.load_contents_async(this._cancellable, (f, res) => {
+            file.load_contents_async(this._colorCancellable, (f, res) => {
                 try {
                     let [ok, bytes] = f.load_contents_finish(res);
                     if (ok && this._visualizer) {
