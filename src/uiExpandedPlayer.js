@@ -677,22 +677,31 @@ export const ExpandedPlayer = GObject.registerClass(
 
             let showVinyl = this._settings.get_boolean('popup-show-vinyl');
             if (!artUrl || !showVinyl) {
-                this._vinylBin.hide();
-                this._vinyl.hide();
-                this._stopVinyl();
-                this._currentArtUrl = null;
+                if (!this._artVisibilityTimer) {
+                    this._artVisibilityTimer = GLib.timeout_add_once(GLib.PRIORITY_DEFAULT, 1000, () => {
+                        this._artVisibilityTimer = null;
+                        this._vinylBin.hide();
+                        this._vinyl.hide();
+                        this._stopVinyl();
+                        this._currentArtUrl = null;
 
-                if (this._titleLabel && this._titleLabel.get_parent()) {
-                    let infoBox = this._titleLabel.get_parent();
-                    infoBox.x_expand = false;
-                    infoBox.set_style('min-width: 0px; margin-left: 0px; margin-right: 15px;');
+                        if (this._titleLabel && this._titleLabel.get_parent()) {
+                            let infoBox = this._titleLabel.get_parent();
+                            infoBox.x_expand = false;
+                            infoBox.set_style('min-width: 0px; margin-left: 0px; margin-right: 15px;');
 
-                    let topRow = infoBox.get_parent();
-                    if (topRow) {
-                        topRow.x_align = Clutter.ActorAlign.CENTER;
-                    }
+                            let topRow = infoBox.get_parent();
+                            if (topRow) {
+                                topRow.x_align = Clutter.ActorAlign.CENTER;
+                            }
+                        }
+                    });
                 }
             } else {
+                if (this._artVisibilityTimer) {
+                    GLib.Source.remove(this._artVisibilityTimer);
+                    this._artVisibilityTimer = null;
+                }
                 this._vinylBin.show();
                 this._vinyl.show();
 
