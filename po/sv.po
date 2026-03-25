@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-23 23:42+0100\n"
-"PO-Revision-Date: 2026-02-24 21:32+0000\n"
-"Last-Translator: Andreas Rheindorf <andreas.rheindorf@inbox.eu>\n"
+"PO-Revision-Date: 2026-03-25 00:10+0000\n"
+"Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/sv/>\n"
 "Language: sv\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.16.1-dev\n"
+"X-Generator: Weblate 5.17-dev\n"
 
 #: src/controller.js:1378
 msgid "Unknown Player"
@@ -518,7 +518,7 @@ msgstr ""
 
 #: prefs.js:516
 msgid "Show Visualizer in Pop-up"
-msgstr "Visualizer och form"
+msgstr ""
 
 #: prefs.js:523
 msgid "Hide Pill Visualizer"

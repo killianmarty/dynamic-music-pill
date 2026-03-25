@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-23 23:42+0100\n"
-"PO-Revision-Date: 2026-03-23 11:09+0000\n"
-"Last-Translator: Alex Buleon <alex.buleon@protonmail.com>\n"
+"PO-Revision-Date: 2026-03-25 00:09+0000\n"
+"Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/fr/>\n"
 "Language: fr\n"
@@ -186,11 +186,11 @@ msgstr "Afficher la pochette de la chanson en cours"
 
 #: prefs.js:69
 msgid "Fallback Album Art"
-msgstr "Image d’Album par Défaut"
+msgstr "Pochette par défaut"
 
 #: prefs.js:70 prefs.js:110
 msgid "No image selected"
-msgstr "Pas d'image sélectionnée"
+msgstr "Aucune image sélectionnée"
 
 #: prefs.js:80
 msgid "Select Fallback Image"
@@ -328,7 +328,7 @@ msgstr ""
 
 #: prefs.js:281
 msgid "Show \"Title • Artist\" when the widget is squeezed"
-msgstr "Afficher \"Titre • Artiste\" quand le widget est comprimé"
+msgstr "Afficher \"Morceau • Artiste\" quand le widget est comprimé"
 
 #: prefs.js:288
 msgid "Compact Mode (Hide Text)"
@@ -336,11 +336,11 @@ msgstr "Mode compact (cacher le texte)"
 
 #: prefs.js:289
 msgid "Hide title and artist"
-msgstr "Cacher le titre et l'artiste"
+msgstr "Masquer le titre et l'artiste"
 
 #: prefs.js:302
 msgid "Mouse Actions"
-msgstr "Actions de la souris"
+msgstr "Souris"
 
 #: prefs.js:305 prefs.js:576
 msgid "None"
@@ -416,7 +416,7 @@ msgstr "Faire tourner le vinyle"
 
 #: prefs.js:377
 msgid "Spin the album art when playing"
-msgstr "Faire tourner la pochette durant la lecture"
+msgstr "Faire tourner la pochette de l'album durant la lecture"
 
 #: prefs.js:388
 msgid "Rotation Speed"
@@ -460,23 +460,23 @@ msgstr ""
 
 #: prefs.js:441
 msgid "Follow Transparency"
-msgstr "Suivre la transparence"
+msgstr "Faire correspondre la transparence"
 
 #: prefs.js:442
 msgid "Inherit opacity settings from the main pill"
-msgstr "Suivre les paramètres d'opacité de la pastille principale"
+msgstr "Hériter de l'opacité de la bulle principale"
 
 #: prefs.js:453
 msgid "Follow Border Radius"
-msgstr ""
+msgstr "Faire correspondre l'épaisseur de la bordure"
 
 #: prefs.js:454
 msgid "Inherit corner roundness from the main pill"
-msgstr ""
+msgstr "Hériter l'arrondi de la bulle principale"
 
 #: prefs.js:463
 msgid "Show Vinyl"
-msgstr "Afficher le Vinyle"
+msgstr "Afficher la pochette"
 
 #: prefs.js:463
 msgid "Display the album art in the pop-up"
@@ -484,19 +484,19 @@ msgstr "Afficher la pochette dans le pop-up"
 
 #: prefs.js:469
 msgid "Square Vinyl Image"
-msgstr ""
+msgstr "Vinyle au format carré"
 
 #: prefs.js:469
 msgid "Use a square album art (disables rotation)"
-msgstr ""
+msgstr "Utiliser une pochette carrée (désactive la rotation)"
 
 #: prefs.js:475
 msgid "Show Shuffle and Loop"
-msgstr "Afficher les boutons Shuffle et Loop"
+msgstr "Afficher Aléatoire et Boucle"
 
 #: prefs.js:475
 msgid "Display extra controls in the pop-up"
-msgstr ""
+msgstr "Afficher les contrôles supplémentaires dans le pop-up"
 
 #: prefs.js:481
 msgid "Use Custom Width"
@@ -504,7 +504,7 @@ msgstr "Définir une largeur personnalisée"
 
 #: prefs.js:481
 msgid "Disable dynamic sizing for the pop-up"
-msgstr ""
+msgstr "Désactiver la taille dynamique du pop-up"
 
 #: prefs.js:488
 msgid "Custom Width Value"
@@ -520,7 +520,7 @@ msgstr ""
 
 #: prefs.js:516
 msgid "Show Visualizer in Pop-up"
-msgstr "Visualiseur et Forme"
+msgstr ""
 
 #: prefs.js:523
 msgid "Hide Pill Visualizer"

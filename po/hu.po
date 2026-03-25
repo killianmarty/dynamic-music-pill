@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-23 23:42+0100\n"
-"PO-Revision-Date: 2026-03-14 17:09+0000\n"
+"PO-Revision-Date: 2026-03-25 00:09+0000\n"
 "Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/hu/>\n"
@@ -39,6 +39,8 @@ msgstr "Nem támogatott"
 #: src/uiExpandedPlayer.js:376
 msgid "First time? Check settings for custom buttons, scroll actions & more"
 msgstr ""
+"Első alkalom? Nézz be a beállításokba az egyéni gombokért, görgetési "
+"műveletekért és sok másért"
 
 #: src/uiExpandedPlayer.js:663
 msgid "Unknown Title"
@@ -50,99 +52,99 @@ msgstr "Ismeretlen előadó"
 
 #: src/uiExpandedPlayer.js:1249
 msgid "Volume"
-msgstr ""
+msgstr "Hangerő"
 
 #: src/uiExpandedPlayer.js:1253
 msgid "No audio stream available"
-msgstr ""
+msgstr "Nincs elérhető hangfolyam"
 
 #: src/uiExpandedPlayer.js:1278 src/uiExpandedPlayer.js:1288
 msgid "Unmute"
-msgstr ""
+msgstr "Némítás feloldása"
 
 #: src/uiExpandedPlayer.js:1278 src/uiExpandedPlayer.js:1288
 msgid "Mute"
-msgstr ""
+msgstr "Némítás"
 
 #: src/uiExpandedPlayer.js:1324
 msgid "Seek"
-msgstr ""
+msgstr "Tekerés"
 
 #: src/uiExpandedPlayer.js:1328
 msgid "This player does not support seeking"
-msgstr ""
+msgstr "A lejátszó nem támogatja a tekerést"
 
 #: src/uiExpandedPlayer.js:1354
 msgid "Audio Output"
-msgstr ""
+msgstr "Hangkimenet"
 
 #: src/uiExpandedPlayer.js:1356
 msgid "Audio control unavailable"
-msgstr ""
+msgstr "Hangerő-szabályozás nem elérhető"
 
 #: src/uiExpandedPlayer.js:1359
 msgid "No output devices found"
-msgstr ""
+msgstr "Nem találhatók kimeneti eszközök"
 
 #: src/uiExpandedPlayer.js:1362
 msgid "Unknown Device"
-msgstr ""
+msgstr "Ismeretlen Eszköz"
 
 #: src/uiExpandedPlayer.js:1383 prefs.js:580
 msgid "Sleep Timer"
-msgstr ""
+msgstr "Elalvásidőzitő"
 
 #: src/uiExpandedPlayer.js:1383
 msgid "min left"
-msgstr ""
+msgstr "perc maradt"
 
 #: src/uiExpandedPlayer.js:1386
 msgid "Cancel Timer"
-msgstr ""
+msgstr "Időzítő törlése"
 
 #: src/uiExpandedPlayer.js:1418
 msgid "Runs inside the shell — works on lock screen"
-msgstr ""
+msgstr "A shellben fut – a zárolási képernyőn is működik"
 
 #: src/uiExpandedPlayer.js:1423 prefs.js:581
 msgid "Playback Speed"
-msgstr ""
+msgstr "Lejátszási sebesség"
 
 #: src/uiExpandedPlayer.js:1430
 msgid "This player does not support playback speed"
-msgstr ""
+msgstr "Ennél a lejátszónál nem állítható a sebesség"
 
 #: src/uiExpandedPlayer.js:1469
 msgid "Player must support MPRIS Rate"
-msgstr ""
+msgstr "A lejátszónak támogatnia kell az MPRIS sebességállítást"
 
 #: src/uiExpandedPlayer.js:1469
 msgid "Not supported by this player"
-msgstr ""
+msgstr "A lejátszó nem támogatja"
 
 #: src/uiExpandedPlayer.js:1475
 msgid "Recently Played"
-msgstr ""
+msgstr "Mostanában hallgatott"
 
 #: src/uiExpandedPlayer.js:1477
 msgid "No history yet"
-msgstr ""
+msgstr "Még nincs előzmény"
 
 #: src/uiExpandedPlayer.js:1510
 msgid "Unknown"
-msgstr ""
+msgstr "Ismeretlen"
 
 #: src/uiExpandedPlayer.js:1565
 msgid "Clear History"
-msgstr ""
+msgstr "Összes törlése"
 
 #: src/uiMusicPill.js:696 src/uiMusicPill.js:990
 msgid "No Media"
-msgstr ""
+msgstr "Nincs Lejátszás"
 
 #: src/uiMusicPill.js:991
 msgid "Waiting for playback..."
-msgstr ""
+msgstr "Várakozás a lejátszásra..."
 
 #: src/uiMusicPill.js:1204
 msgid "Loading..."
@@ -253,11 +255,11 @@ msgstr "Hosszú címek és előadók animálása"
 
 #: prefs.js:208
 msgid "Scroll Only on Hover"
-msgstr ""
+msgstr "Görgetés csak rámutatáskor"
 
 #: prefs.js:209
 msgid "Text stays still until you hover the pill"
-msgstr ""
+msgstr "A szöveg álló helyzetben marad, amíg az egérrel a pill fölé nem mutatsz"
 
 #: prefs.js:222
 msgid "Lyrics Display"
@@ -269,23 +271,23 @@ msgstr "Valós időben szinkronizált dalszöveg mutatása az aktuális számhoz
 
 #: prefs.js:234
 msgid "Lyrics language preference"
-msgstr ""
+msgstr "Dalszöveg nyelvi beállításai"
 
 #: prefs.js:235
 msgid "When multiple versions exist"
-msgstr ""
+msgstr "Ha több verzió is elérhető"
 
 #: prefs.js:237
 msgid "Auto"
-msgstr ""
+msgstr "Automatikus"
 
 #: prefs.js:238
 msgid "Prefer original script"
-msgstr ""
+msgstr "Eredeti írásmód preferálása"
 
 #: prefs.js:239
 msgid "Prefer Latin"
-msgstr ""
+msgstr "Latin írásmód preferálása"
 
 #: prefs.js:248
 msgid "Lyrics Fade-in Effect"
@@ -425,7 +427,7 @@ msgstr "Forgás Sebessége"
 
 #: prefs.js:389
 msgid "Adjust the vinyl spin speed (Lower is slower, Default: 10)"
-msgstr ""
+msgstr "Lemez forgási sebessége (Kisebb érték lassabb, Alapértelmezett: 10)"
 
 #: prefs.js:397 prefs.js:768
 msgid "Enable Shadow"
@@ -545,57 +547,60 @@ msgstr "Felugró vizualizáció magassága"
 
 #: prefs.js:559
 msgid "Custom Control Buttons"
-msgstr ""
+msgstr "Testreszabható gombok"
 
 #: prefs.js:560
 msgid "Add up to two extra buttons in the expanded player's controls row."
-msgstr ""
+msgstr "Legfeljebb két további gombot adhatsz hozzá a lejátszó vezérlősorához."
 
 #: prefs.js:564
 msgid "Enable Custom Buttons"
-msgstr ""
+msgstr "Egyéni gombok engedélyezése"
 
 #: prefs.js:565
 msgid "Show additional action buttons next to Shuffle and Loop"
-msgstr ""
+msgstr "További akciógombok megjelenítése a keverés és ismétlés mellett"
 
 #: prefs.js:577
 msgid "Volume Control"
-msgstr ""
+msgstr "Hangerő-szabályozás"
 
 #: prefs.js:578
 msgid "Seek ±10 Seconds"
-msgstr ""
+msgstr "Tekerés ±10 másodpercet"
 
 #: prefs.js:579
 msgid "Audio Output Switcher"
-msgstr ""
+msgstr "Hangkimenet-váltó"
 
 #: prefs.js:582
 msgid "Track History"
-msgstr ""
+msgstr "Lejátszási előzmények"
 
 #: prefs.js:613
 msgid ""
 "If both buttons are set to Seek, they act directly (Button 1 = −10s, Button "
 "2 = +10s). Otherwise Seek opens a sub-page."
 msgstr ""
+"Ha mindkét gomb tekerésre van állítva, azok közvetlenül működnek (1. gomb = –"
+"10 mp, 2. gomb = +10 mp). Ellenkező esetben a tekerés gomb egy aloldalt nyit "
+"meg."
 
 #: prefs.js:616
 msgid "Custom Button 1"
-msgstr ""
+msgstr "Egyéni gomb 1"
 
 #: prefs.js:616
 msgid "Placed left of Shuffle."
-msgstr ""
+msgstr "A keverés gombtól balra helyezkedik el."
 
 #: prefs.js:619
 msgid "Custom Button 2"
-msgstr ""
+msgstr "Egyéni gomb 2"
 
 #: prefs.js:619
 msgid "Placed right of Loop."
-msgstr ""
+msgstr "Az ismétlés gombtól jobbra helyezkedik el."
 
 #: prefs.js:630
 msgid "Style & Layout"
@@ -672,11 +677,11 @@ msgstr "Távolság a szöveg és a hullámanimáció között"
 
 #: prefs.js:693
 msgid "Outer Edge Margin"
-msgstr ""
+msgstr "Külső szél margója"
 
 #: prefs.js:694
 msgid "Spacing before the album art and after the visualizer"
-msgstr ""
+msgstr "Távolság az albumkép előtt és a vizualizáció után"
 
 #: prefs.js:701
 msgid "Corner Radius"
@@ -849,11 +854,12 @@ msgstr "Egyedi színek"
 
 #: prefs.js:908
 msgid "Sync GNOME Accent Color"
-msgstr ""
+msgstr "GNOME rendszerszín igazítása az albumképhez"
 
 #: prefs.js:909
 msgid "Dynamically change the GNOME Shell accent color to match the album art"
 msgstr ""
+"A GNOME Shell kiemelő színének dinamikus módosítása az albumképhez igazodva"
 
 #: prefs.js:919
 msgid "Use Custom Colors"
@@ -1071,19 +1077,19 @@ msgstr "Mentett beállítások megnyitása"
 
 #: prefs.js:1383
 msgid "Art Cache"
-msgstr ""
+msgstr "Borítókép-gyorsítótár"
 
 #: prefs.js:1405
 msgid "covers cached"
-msgstr ""
+msgstr "borító a gyorsítótárban"
 
 #: prefs.js:1408
 msgid "Album Art Cache"
-msgstr ""
+msgstr "Albumborító-gyorsítótár"
 
 #: prefs.js:1413
 msgid "Clear"
-msgstr ""
+msgstr "Törlés"
 
 #: prefs.js:1435
 msgid "Danger Zone"
