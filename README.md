@@ -217,10 +217,10 @@ This extension provides a Nix Flake for easy installation on NixOS.
 
 ```bash
 # GNOME 45-49:
-nix profile install github:Andbal23/dynamic-music-pill
+nix profile add github:Andbal23/dynamic-music-pill
 
 # GNOME 50:
-nix profile install github:Andbal23/dynamic-music-pill#gnome50
+nix profile add github:Andbal23/dynamic-music-pill#gnome50
 ```
 
 #### Declarative (flake-based configuration)
