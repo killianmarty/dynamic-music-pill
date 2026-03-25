@@ -209,6 +209,43 @@ glib-compile-schemas schemas/
 ```bash
 gnome-extensions enable dynamic-music-pill@andbal
 ```
+### NixOS Installation
+
+This extension provides a Nix Flake for easy installation on NixOS.
+
+#### Quick Install (via terminal)
+
+```bash
+# GNOME 45-49:
+nix profile install github:Andbal23/dynamic-music-pill
+
+# GNOME 50:
+nix profile install github:Andbal23/dynamic-music-pill#gnome50
+```
+
+#### Declarative (flake-based configuration)
+
+Add the input to your `flake.nix`:
+
+```nix
+inputs.dynamic-music-pill.url = "github:Andbal23/dynamic-music-pill";
+```
+
+Then add the package to your `configuration.nix` or Home Manager config:
+
+```nix
+# GNOME 45-49:
+environment.systemPackages = [
+  inputs.dynamic-music-pill.packages.${pkgs.system}.default
+];
+
+# GNOME 50:
+environment.systemPackages = [
+  inputs.dynamic-music-pill.packages.${pkgs.system}.gnome50
+];
+```
+
+Rebuild your system with `sudo nixos-rebuild switch` and you're good to go!
 
 ### Real-Time Visualizer (optional)
 
