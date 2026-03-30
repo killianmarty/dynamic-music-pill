@@ -1,5 +1,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import Soup from 'gi://Soup';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import Shell from 'gi://Shell';
@@ -80,11 +81,11 @@ export class MusicController {
         this._artCacheMax = 50;
         this._ownArtCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'dynamic-music-pill', 'art']);
         GLib.mkdir_with_parents(this._ownArtCacheDir, 0o755);
-        
+
         this._NodeInfo = Gio.DBusNodeInfo.new_for_xml(MPRIS_IFACE);
         this._PlayerInterfaceInfo = this._NodeInfo.interfaces.find(i => i.name === 'org.mpris.MediaPlayer2.Player');
         this._connection = Gio.bus_get_sync(Gio.BusType.SESSION, null);
-        
+
         this._expandedPlayer = null;
         this._lastWinnerName = null;
         this._lastActionTime = 0;
@@ -95,7 +96,7 @@ export class MusicController {
         try {
             let stored = this._settings.get_string('playback-history');
             this._trackHistory = JSON.parse(stored) || [];
-        } catch(e) { this._trackHistory = []; }
+        } catch (e) { this._trackHistory = []; }
 
         this._sleepTimerId = null;
         this._sleepTimerActive = false;
@@ -103,17 +104,17 @@ export class MusicController {
 
         // Network lyrics acquisition related
         this._lyricsClient = new LyricsClient();
-        this._fetchedLyricsData = null; 
-        this._fetchedTrackKey = null; 
-        this._lyricsTimerId = null; 
-        this._dbusLyricActive = false; 
-        this._lastLyricIndex = -1; 
+        this._fetchedLyricsData = null;
+        this._fetchedTrackKey = null;
+        this._lyricsTimerId = null;
+        this._dbusLyricActive = false;
+        this._lastLyricIndex = -1;
 
         this._lyricOwnerId = null;
         this._lyricIfaceInfo = null;
-        
+
         this._createPill();
-        
+
         GLib.idle_add(GLib.PRIORITY_LOW, () => {
             this._cleanupDiskCache();
             return GLib.SOURCE_REMOVE;
@@ -148,7 +149,7 @@ export class MusicController {
         this._isShuttingDown = false;
         this._createPill();
         initDTDModule();
-        
+
         global.display.connectObject('notify::focus-window', () => this._monitorGameMode(), this);
         this._settings.connectObject('changed::hide-default-player', () => this._updateDefaultPlayerVisibility(), this);
 
@@ -162,16 +163,16 @@ export class MusicController {
             this._doEnable();
         }
     }
-    
+
     _doEnable() {
         this._inject();
         this._ownerId = this._connection.signal_subscribe(
-            'org.freedesktop.DBus', 'org.freedesktop.DBus', 'NameOwnerChanged', 
+            'org.freedesktop.DBus', 'org.freedesktop.DBus', 'NameOwnerChanged',
             '/org/freedesktop/DBus', null, Gio.DBusSignalFlags.NONE, () => this._scan()
         );
         this._scan();
         this._settings.connectObject('changed::player-filter-mode', () => this._scan(), this);
-    this._settings.connectObject('changed::player-filter-list', () => this._scan(), this);
+        this._settings.connectObject('changed::player-filter-list', () => this._scan(), this);
 
         this._watchdog = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
             this._monitorGameMode();
@@ -185,7 +186,7 @@ export class MusicController {
         });
         this._itemDragEndId = Main.overview.connect('item-drag-end', () => {
             this._isUserDragging = false;
-            this._queueInject(); 
+            this._queueInject();
         });
         this._updateDefaultPlayerVisibility();
         this._createLyricProxy();
@@ -201,15 +202,15 @@ export class MusicController {
             }
         }, this);
         this._settings.connectObject('changed::lyrics-language-preference', () => {
-        	    this._fetchedTrackKey = null;
-        	    this._fetchedLyricsData = null;
-        	    this._lastLyricIndex = -1;
+            this._fetchedTrackKey = null;
+            this._fetchedLyricsData = null;
+            this._lastLyricIndex = -1;
 
-        	    if (this._settings.get_boolean('enable-lyrics') && !this._dbusLyricActive) {
-        		let player = this._getActivePlayer();
-        		if (player) this._fetchNetworkLyrics(player);
-        	    }
-        	}, this);
+            if (this._settings.get_boolean('enable-lyrics') && !this._dbusLyricActive) {
+                let player = this._getActivePlayer();
+                if (player) this._fetchNetworkLyrics(player);
+            }
+        }, this);
     }
 
     disable() {
@@ -230,7 +231,7 @@ export class MusicController {
             Main.layoutManager.disconnect(this._startupCompleteId);
             this._startupCompleteId = null;
         }
-        
+
         if (this._itemDragBeginId) {
             Main.overview.disconnect(this._itemDragBeginId);
             this._itemDragBeginId = null;
@@ -249,19 +250,19 @@ export class MusicController {
 
         global.display.disconnectObject(this);
         this._settings.disconnectObject(this);
-        
+
         if (this._feedbackTimer) {
             GLib.Source.remove(this._feedbackTimer);
             this._feedbackTimer = null;
         }
-        
+
         if (this._injectTimeout) { GLib.Source.remove(this._injectTimeout); this._injectTimeout = null; }
         if (this._watchdog) { GLib.Source.remove(this._watchdog); this._watchdog = null; }
         if (this._recheckTimer) { GLib.Source.remove(this._recheckTimer); this._recheckTimer = null; }
         if (this._updateTimeoutId) { GLib.Source.remove(this._updateTimeoutId); this._updateTimeoutId = null; }
         if (this._retryArtTimer) { GLib.Source.remove(this._retryArtTimer); this._retryArtTimer = null; }
         this.cancelSleepTimer();
-        
+
         if (this._ownerId) {
             this._connection.signal_unsubscribe(this._ownerId);
             this._ownerId = null;
@@ -285,7 +286,7 @@ export class MusicController {
         }
         this._fetchedLyricsData = null;
         this._fetchedTrackKey = null;
-        
+
         if (this._expandedPlayer) {
             this._expandedPlayer.destroy();
             this._expandedPlayer = null;
@@ -298,11 +299,11 @@ export class MusicController {
             this._removeProxy(name);
         }
         this._proxies.clear();
-        
+
         this._updateDefaultPlayerVisibility(true);
         SharedVisualizerEngine.destroy();
     }
-    
+
     performAction(action) {
         if (action === 'play_pause') this.togglePlayback();
         else if (action === 'next') this.next();
@@ -313,7 +314,7 @@ export class MusicController {
         else if (action === 'open_settings') this.openSettings();
         else if (action === 'close_app') this.closeApp();
     }
-    
+
     openSettings() {
         if (this._extension) {
             this._extension.openPreferences();
@@ -332,7 +333,7 @@ export class MusicController {
                         mapping[parts[0].trim().toLowerCase()] = parts[1].trim().toLowerCase();
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
         return mapping;
     }
@@ -342,27 +343,27 @@ export class MusicController {
         if (!player) return;
 
         let busName = player._busName;
-        
+
         this._connection.call(
-            busName, 
-            '/org/mpris/MediaPlayer2', 
-            'org.mpris.MediaPlayer2', 
+            busName,
+            '/org/mpris/MediaPlayer2',
+            'org.mpris.MediaPlayer2',
             'Quit',
             null, null, Gio.DBusCallFlags.NONE, -1, null,
-            (conn, res) => { 
-                try { conn.call_finish(res); } catch (e) {} 
+            (conn, res) => {
+                try { conn.call_finish(res); } catch (e) { }
             }
         );
 
         let parts = busName.replace('org.mpris.MediaPlayer2.', '').split('.');
-        
+
         let rawBus = parts[0].toLowerCase();
         let fullBusId = parts.join('.').toLowerCase();
         let identity = (player._identity || '').toLowerCase();
-        
+
         let customMapping = this._getCustomAppMapping();
         let killTarget = customMapping[fullBusId] || customMapping[rawBus] || customMapping[identity] || player._desktopEntry;
-        if (killTarget === 'enter_app_id_here') killTarget = player._desktopEntry; 
+        if (killTarget === 'enter_app_id_here') killTarget = player._desktopEntry;
 
         if (!killTarget) {
             if (['org', 'com', 'net', 'io'].includes(parts[0]) && parts.length >= 3) {
@@ -374,14 +375,14 @@ export class MusicController {
 
         if (killTarget) {
             killTarget = killTarget.toLowerCase();
-            
+
             GLib.timeout_add(GLib.PRIORITY_DEFAULT, 800, () => {
                 if (!this._proxies.has(busName)) return GLib.SOURCE_REMOVE;
-                
+
                 try {
                     if (killTarget.includes('.')) {
                         Gio.Subprocess.new(['flatpak', 'kill', killTarget], Gio.SubprocessFlags.NONE);
-                    } 
+                    }
                     Gio.Subprocess.new(['pkill', '-f', killTarget], Gio.SubprocessFlags.NONE);
                 } catch (e) {
                     console.debug("[Dynamic Music Pill] Failed to hard kill: " + killTarget);
@@ -398,7 +399,7 @@ export class MusicController {
         this._connection.call(
             player._busName, '/org/mpris/MediaPlayer2', 'org.mpris.MediaPlayer2', 'Raise',
             null, null, Gio.DBusCallFlags.NONE, -1, null,
-            (conn, res) => { try { conn.call_finish(res); } catch (e) {} }
+            (conn, res) => { try { conn.call_finish(res); } catch (e) { } }
         );
 
         let appSystem = Shell.AppSystem.get_default();
@@ -407,7 +408,7 @@ export class MusicController {
         let busNameParts = player._busName.replace('org.mpris.MediaPlayer2.', '').split('.');
         let rawBus = busNameParts[0].toLowerCase();
         let fullBusId = busNameParts.join('.').toLowerCase();
-        
+
         let desktopEntry = (player._desktopEntry || '').toLowerCase();
         let identity = (player._identity || '').toLowerCase();
 
@@ -421,9 +422,9 @@ export class MusicController {
             let isMatch = false;
 
             if (customTarget && (appId.includes(customTarget) || appName.includes(customTarget))) {
-                isMatch = true; 
+                isMatch = true;
             } else if (!customTarget && desktopEntry && appId.includes(desktopEntry)) {
-                isMatch = true; 
+                isMatch = true;
             } else if (!customTarget && identity && appName === identity) {
                 isMatch = true;
             } else if (!customTarget && appId.includes(fullBusId)) {
@@ -458,13 +459,13 @@ export class MusicController {
             }
         }
     }
-    
+
     togglePlayerMenu() {
         if (this._playerMenu) {
             this._playerMenu.hide();
             return;
         }
-        
+
         this._playerMenu = new PlayerSelectorMenu(this);
         this._playerMenu.connect('destroy', () => { this._playerMenu = null; });
         Main.layoutManager.addChrome(this._playerMenu);
@@ -499,7 +500,7 @@ export class MusicController {
 
         let c = this._pill._displayedColor;
         this._expandedPlayer.updateStyle(c.r, c.g, c.b, this._pill._currentBgAlpha);
-        
+
         let artUrl = this._pill._lastArtUrl;
         this._expandedPlayer.showFor(player, artUrl);
 
@@ -514,7 +515,7 @@ export class MusicController {
         } else {
             startW = Math.min(Math.max(natW > 0 ? natW : minWLimit, minWLimit), 600);
         }
-        
+
         let startH = natH > 0 ? natH : 260;
 
         let startX = px + (pw / 2) - (startW / 2);
@@ -522,7 +523,7 @@ export class MusicController {
             if (startX < monitor.x + 10) startX = monitor.x + 10;
             else if (startX + startW > monitor.x + monitor.width - 10) startX = monitor.x + monitor.width - startW - 10;
         }
-        
+
         let startY = (monitor && py > monitor.y + (monitor.height / 2)) ? py - startH - 15 : py + ph + 15;
         this._expandedPlayer.setPosition(startX, startY);
 
@@ -855,7 +856,7 @@ export class MusicController {
                             if (keys.Metadata) {
                                 let mObj = (keys.Metadata instanceof GLib.Variant) ? keys.Metadata.deep_unpack() : keys.Metadata;
                                 trackId = smartUnpack(mObj['mpris:trackid']);
-                                
+
                                 if (trackId && trackId !== p._lastTrackId) {
                                     p._lastPosition = 0;
                                     p._lastPositionTime = Date.now();
@@ -898,38 +899,38 @@ export class MusicController {
                     p._nameOwnerId = p.connect('notify::g-name-owner', () => { this._scan(); });
 
                     p._identity = null;
-                    
-                    this._connection.call(
-                      p._busName,
-                      '/org/mpris/MediaPlayer2',
-                      'org.freedesktop.DBus.Properties',
-                      'GetAll',
-                      new GLib.Variant('(s)', ['org.mpris.MediaPlayer2']),
-                      null, Gio.DBusCallFlags.NONE, -1, null,
-                      (conn, asyncRes) => {
-                        try {
-                          let result = conn.call_finish(asyncRes);
-                          if (result) {
-                            let props = result.deep_unpack()[0];
-                            if (props['Identity']){
-                              let v = props['Identity'];
-                              p._identity = v instanceof GLib.Variant ? v.unpack() : v;
-                            }
-                            if (props['DesktopEntry']){
-                              let v = props['DesktopEntry'];
-                              p._desktopEntry = v instanceof GLib.Variant ? v.unpack() : v;
-                            }
 
-                            p._gicon = this._resolvePlayerIcon(p);
-                            this._triggerUpdate();
-                          }
-                        } catch (e) { console.debug(e.message); }
-                      }
+                    this._connection.call(
+                        p._busName,
+                        '/org/mpris/MediaPlayer2',
+                        'org.freedesktop.DBus.Properties',
+                        'GetAll',
+                        new GLib.Variant('(s)', ['org.mpris.MediaPlayer2']),
+                        null, Gio.DBusCallFlags.NONE, -1, null,
+                        (conn, asyncRes) => {
+                            try {
+                                let result = conn.call_finish(asyncRes);
+                                if (result) {
+                                    let props = result.deep_unpack()[0];
+                                    if (props['Identity']) {
+                                        let v = props['Identity'];
+                                        p._identity = v instanceof GLib.Variant ? v.unpack() : v;
+                                    }
+                                    if (props['DesktopEntry']) {
+                                        let v = props['DesktopEntry'];
+                                        p._desktopEntry = v instanceof GLib.Variant ? v.unpack() : v;
+                                    }
+
+                                    p._gicon = this._resolvePlayerIcon(p);
+                                    this._triggerUpdate();
+                                }
+                            } catch (e) { console.debug(e.message); }
+                        }
 
                     );
 
                     this._proxies.set(name, p);
-                    
+
                     this._connection.call(
                         p._busName,
                         '/org/mpris/MediaPlayer2',
@@ -961,7 +962,7 @@ export class MusicController {
             }
         );
     }
-    
+
     _artCacheSet(key, value) {
         if (this._artCache.has(key)) this._artCache.delete(key);
         this._artCache.set(key, value);
@@ -969,7 +970,7 @@ export class MusicController {
             let evictedKey = this._artCache.keys().next().value;
             this._artCache.delete(evictedKey);
         }
-        
+
         if (this._cleaningTimeout) {
             GLib.Source.remove(this._cleaningTimeout);
         }
@@ -986,12 +987,12 @@ export class MusicController {
         try {
             let dir = Gio.File.new_for_path(this._ownArtCacheDir);
             if (!dir.query_exists(null)) return;
-            
+
             let en = dir.enumerate_children('standard::name,time::modified', Gio.FileQueryInfoFlags.NONE, null);
             let fi;
             let cacheFiles = [];
             let histFiles = [];
-            
+
             while ((fi = en.next_file(null)) !== null) {
                 let name = fi.get_name();
                 let time = fi.get_attribute_uint64('time::modified') || 0;
@@ -1002,24 +1003,24 @@ export class MusicController {
                 }
             }
             en.close(null);
-            
+
             cacheFiles.sort((a, b) => b.time - a.time);
             histFiles.sort((a, b) => b.time - a.time);
-            
+
             if (cacheFiles.length > this._artCacheMax) {
                 for (let i = this._artCacheMax; i < cacheFiles.length; i++) {
                     let f = dir.get_child(cacheFiles[i].name);
                     f.delete_async(GLib.PRIORITY_LOW, null, (obj, res) => {
-                        try { obj.delete_finish(res); } catch (e) {}
+                        try { obj.delete_finish(res); } catch (e) { }
                     });
                 }
             }
-            
+
             if (histFiles.length > 30) {
                 for (let i = 30; i < histFiles.length; i++) {
                     let f = dir.get_child(histFiles[i].name);
                     f.delete_async(GLib.PRIORITY_LOW, null, (obj, res) => {
-                        try { obj.delete_finish(res); } catch (e) {}
+                        try { obj.delete_finish(res); } catch (e) { }
                     });
                 }
             }
@@ -1032,7 +1033,7 @@ export class MusicController {
             let appSystem = Shell.AppSystem.get_default();
             let busName = p._busName || '';
             let rawParts = busName.replace('org.mpris.MediaPlayer2.', '').split('.');
-            let rawBus = rawParts[0].toLowerCase();           
+            let rawBus = rawParts[0].toLowerCase();
             let fullBusId = rawParts.join('.').toLowerCase();
 
             let identity = (p._identity || '').toLowerCase().replace(/ /g, '-');
@@ -1040,7 +1041,7 @@ export class MusicController {
             const tryLookup = (id) => {
                 if (!id) return null;
                 return appSystem.lookup_app(id + '.desktop') ||
-                       appSystem.lookup_app(id);
+                    appSystem.lookup_app(id);
             };
 
             let runningApps = appSystem.get_running();
@@ -1151,16 +1152,16 @@ export class MusicController {
         let trackKey = `${title}||${artist}`;
 
         this._fetchedTrackKey = trackKey;
-        this._fetchedLyricsData = null; 
+        this._fetchedLyricsData = null;
         this._lastLyricIndex = -1;
 
         let durationSec = length > 0 ? length / 1000000 : 0;
 
         try {
-            let lyrics = await this._lyricsClient.getLyrics(title, artist, album, durationSec,this._settings);
+            let lyrics = await this._lyricsClient.getLyrics(title, artist, album, durationSec, this._settings);
             if (this._fetchedTrackKey !== trackKey) return;
 
-            this._fetchedLyricsData = lyrics; 
+            this._fetchedLyricsData = lyrics;
 
             if (lyrics && lyrics.length > 0) {
                 this._startLyricsTimer();
@@ -1197,27 +1198,27 @@ export class MusicController {
             null, Gio.DBusCallFlags.NONE, -1, null,
             (conn, asyncRes) => {
                 try {
-		let result = conn.call_finish(asyncRes);
-		if (result) {
-		    let posVariant = result.deep_unpack()[0];
-		    if (posVariant) {
-		        let val = posVariant instanceof GLib.Variant 
-		            ? posVariant.unpack() 
-		            : posVariant;
-		        if (typeof val === 'number' && val >= 0) {
-		            player._lastPosition = val;
-		            player._lastPositionTime = Date.now();
-		        }
-		    }
-		}
-                } catch (e) {console.debug(`[Dynamic Music Pill] Position sync error: ${e.message}`);}
+                    let result = conn.call_finish(asyncRes);
+                    if (result) {
+                        let posVariant = result.deep_unpack()[0];
+                        if (posVariant) {
+                            let val = posVariant instanceof GLib.Variant
+                                ? posVariant.unpack()
+                                : posVariant;
+                            if (typeof val === 'number' && val >= 0) {
+                                player._lastPosition = val;
+                                player._lastPositionTime = Date.now();
+                            }
+                        }
+                    }
+                } catch (e) { console.debug(`[Dynamic Music Pill] Position sync error: ${e.message}`); }
             }
         );
     }
 
     _onLyricsTick() {
-    
-    	if (!this._settings || !this._settings.get_boolean('enable-lyrics')) {
+
+        if (!this._settings || !this._settings.get_boolean('enable-lyrics')) {
             this._stopLyricsTimer();
             return;
         }
@@ -1264,7 +1265,7 @@ export class MusicController {
 
     _triggerUpdate() {
         if (this._updateTimeoutId) {
-            return; 
+            return;
         }
 
         let useDelay = this._settings ? this._settings.get_boolean('compatibility-delay') : false;
@@ -1316,329 +1317,343 @@ export class MusicController {
     }
 
     _updateUI() {
-      try {
-        if (this._recheckTimer) {
-            GLib.Source.remove(this._recheckTimer);
-            this._recheckTimer = null;
-        }
-
-        if (!this._pill) this._createPill();
-        if (!this._pill) return;
-
-        if (this._pill.get_parent()) {
-            let container = this._pill.get_parent();
-            let duplicates = container.get_children().filter(
-                c => c !== this._pill && c instanceof MusicPill
-            );
-            for (let p of duplicates) {
-                console.debug('[Dynamic Music Pill] Removing duplicate pill from _updateUI');
-                container.remove_child(p);
-                p.destroy();
-            }
-        }
-
-        let target = this._settings ? this._settings.get_int('target-container') : 0;
-        let container = null;
-        if (target === 0) {
-            let dtd = Main.panel.statusArea['dash-to-dock'] || Main.panel.statusArea['ubuntu-dock'];
-            container = (dtd && dtd._box) ? dtd._box : (Main.overview.dash._box || null);
-        } else if (target === 1) container = Main.panel._leftBox;
-        else if (target === 2) container = Main.panel._centerBox;
-        else if (target === 3) container = Main.panel._rightBox;
-
-        if (container) {
-            this._ensurePosition(container);
-        }
-
-        let active = this._getActivePlayer();
-        if (active) {
-            if (this._lastWinnerName !== active._busName) {
-                this._dbusLyricActive = false;
-                this._fetchedTrackKey = null;
-                this._fetchedLyricsData = null;
-                this._lastLyricIndex = -1;
-                this._stopLyricsTimer();
-            }
-            this._lastWinnerName = active._busName;
-
-            let m = active.Metadata;
-            let title = null, artist = null, artUrl = null;
-            let currentArt = null;
-            let trackFileUrl = null;
-
-            if (m) {
-                let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
-                title = smartUnpack(metaObj['xesam:title']);
-                artist = smartUnpack(metaObj['xesam:artist']);
-                if (Array.isArray(artist)) artist = artist.map(a => smartUnpack(a)).join(', ');
-                currentArt = smartUnpack(metaObj['mpris:artUrl']);
-                trackFileUrl = smartUnpack(metaObj['xesam:url']);
-            }            
-            if (!title && active._busName) {
-                title = active._identity || _("Unknown Player");
-		artist = _("No active media");
+        try {
+            if (this._recheckTimer) {
+                GLib.Source.remove(this._recheckTimer);
+                this._recheckTimer = null;
             }
 
-            let rawName = active._busName || "";
-            let cacheKey = (rawName.includes('.instance') ? rawName.split('.instance')[0] : rawName) + '|' + (title || '');
+            if (!this._pill) this._createPill();
+            if (!this._pill) return;
 
-            this._monitorArtFile(currentArt);
-
-            if (currentArt && typeof currentArt === 'string' && currentArt.trim() !== "") {
-	    let isFileUrl = currentArt.startsWith('file://');
-	    if (isFileUrl) {
-		let srcFile = Gio.File.new_for_uri(currentArt);
-		if (srcFile.query_exists(null)) {
-		    let srcTimeStr = '';
-		    try {
-		        let srcInfo = srcFile.query_info(Gio.FILE_ATTRIBUTE_TIME_MODIFIED, Gio.FileQueryInfoFlags.NONE, null);
-		        if (srcInfo) {
-		            srcTimeStr = srcInfo.get_attribute_uint64(Gio.FILE_ATTRIBUTE_TIME_MODIFIED).toString();
-		        }
-		    } catch (e) {}
-		    let hashSource = currentArt + '|' + (title || '') + '|' + (artist || '') + '|' + srcTimeStr;
-		    let hash = GLib.compute_checksum_for_string(
-		        GLib.ChecksumType.MD5, hashSource, -1);
-		    let cachedPath = GLib.build_filenamev([
-		        this._ownArtCacheDir, hash + '.png']);
-		    let cachedFile = Gio.File.new_for_path(cachedPath);
-            
-            let info = null;
-            if (cachedFile.query_exists(null)) {
-                try {
-                    info = cachedFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
-                } catch (e) {}
+            if (this._pill.get_parent()) {
+                let container = this._pill.get_parent();
+                let duplicates = container.get_children().filter(
+                    c => c !== this._pill && c instanceof MusicPill
+                );
+                for (let p of duplicates) {
+                    console.debug('[Dynamic Music Pill] Removing duplicate pill from _updateUI');
+                    container.remove_child(p);
+                    p.destroy();
+                }
             }
-		    if (info && info.get_size() > 0) {
-		        artUrl = cachedFile.get_uri();
-                this._artCacheSet(cacheKey, artUrl);
-		    } else {
-                if (cachedFile.query_exists(null)) cachedFile.delete(null);
 
-		        artUrl = (this._pill && this._pill._lastArtUrl) ? this._pill._lastArtUrl : null;
-		        srcFile.copy_async(cachedFile,
-		            Gio.FileCopyFlags.OVERWRITE, GLib.PRIORITY_DEFAULT, null, null,
-		            (src, res) => {
-                        let success = false;
-		                try {
-		                    src.copy_finish(res);
-                            let cInfo = cachedFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
-                            if (cInfo && cInfo.get_size() > 0) success = true;
-		                } catch (e) { }
+            let target = this._settings ? this._settings.get_int('target-container') : 0;
+            let container = null;
+            if (target === 0) {
+                let dtd = Main.panel.statusArea['dash-to-dock'] || Main.panel.statusArea['ubuntu-dock'];
+                container = (dtd && dtd._box) ? dtd._box : (Main.overview.dash._box || null);
+            } else if (target === 1) container = Main.panel._leftBox;
+            else if (target === 2) container = Main.panel._centerBox;
+            else if (target === 3) container = Main.panel._rightBox;
 
-                        if (success) {
-		                    let newUri = cachedFile.get_uri();
-		                    this._artCacheSet(cacheKey, newUri);
-		                    if (this._pill && this._pill._lastArtUrl !== newUri && this._getActivePlayer()) {
-		                        GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-		                            this._updateUI();
-		                            return GLib.SOURCE_REMOVE;
-		                        });
-		                    }
-                        } else {
-                            this._artCacheSet(cacheKey, currentArt);
-                            if (this._pill && this._pill._lastArtUrl !== currentArt && this._getActivePlayer()) {
-                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                                    this._pill.showFor(title, artist, currentArt, active.PlaybackStatus, active._busName, false, active);
-                                    return GLib.SOURCE_REMOVE;
-                                });
+            if (container) {
+                this._ensurePosition(container);
+            }
+
+            let active = this._getActivePlayer();
+            if (active) {
+                if (this._lastWinnerName !== active._busName) {
+                    this._dbusLyricActive = false;
+                    this._fetchedTrackKey = null;
+                    this._fetchedLyricsData = null;
+                    this._lastLyricIndex = -1;
+                    this._stopLyricsTimer();
+                }
+                this._lastWinnerName = active._busName;
+
+                let m = active.Metadata;
+                let title = null, artist = null, artUrl = null;
+                let currentArt = null;
+                let trackFileUrl = null;
+
+                if (m) {
+                    let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
+                    title = smartUnpack(metaObj['xesam:title']);
+                    artist = smartUnpack(metaObj['xesam:artist']);
+                    if (Array.isArray(artist)) artist = artist.map(a => smartUnpack(a)).join(', ');
+                    currentArt = smartUnpack(metaObj['mpris:artUrl']);
+                    trackFileUrl = smartUnpack(metaObj['xesam:url']);
+                }
+                if (!title && active._busName) {
+                    title = active._identity || _("Unknown Player");
+                    artist = _("No active media");
+                }
+
+                let rawName = active._busName || "";
+                let cacheKey = (rawName.includes('.instance') ? rawName.split('.instance')[0] : rawName) + '|' + (title || '');
+
+                this._monitorArtFile(currentArt);
+
+                if (currentArt && typeof currentArt === 'string' && currentArt.trim() !== "") {
+                    let isFileUrl = currentArt.startsWith('file://');
+                    if (isFileUrl) {
+                        let srcFile = Gio.File.new_for_uri(currentArt);
+                        if (srcFile.query_exists(null)) {
+                            let srcTimeStr = '';
+                            try {
+                                let srcInfo = srcFile.query_info(Gio.FILE_ATTRIBUTE_TIME_MODIFIED, Gio.FileQueryInfoFlags.NONE, null);
+                                if (srcInfo) {
+                                    srcTimeStr = srcInfo.get_attribute_uint64(Gio.FILE_ATTRIBUTE_TIME_MODIFIED).toString();
+                                }
+                            } catch (e) { }
+                            let hashSource = currentArt + '|' + (title || '') + '|' + (artist || '') + '|' + srcTimeStr;
+                            let hash = GLib.compute_checksum_for_string(
+                                GLib.ChecksumType.MD5, hashSource, -1);
+                            let cachedPath = GLib.build_filenamev([
+                                this._ownArtCacheDir, hash + '.png']);
+                            let cachedFile = Gio.File.new_for_path(cachedPath);
+
+                            let info = null;
+                            if (cachedFile.query_exists(null)) {
+                                try {
+                                    info = cachedFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
+                                } catch (e) { }
                             }
+                            if (info && info.get_size() > 0) {
+                                artUrl = cachedFile.get_uri();
+                                this._artCacheSet(cacheKey, artUrl);
+                            } else {
+                                if (cachedFile.query_exists(null)) cachedFile.delete(null);
 
-                            if (this._getActivePlayer()) {
-                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                                    if (!this._retryArtTimer) {
-                                        this._retryArtTimerCount = 0;
-                                        this._retryArtTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                                            this._retryArtTimerCount++;
-                                            if (this._retryArtTimerCount > 10 || !this._pill || (this._pill.is_finalized && this._pill.is_finalized())) {
-                                                this._retryArtTimer = null;
-                                                return GLib.SOURCE_REMOVE;
-                                            }
-                                            this._updateUI();
-                                            return GLib.SOURCE_CONTINUE;
-                                        });
-                                    }
-                                    return GLib.SOURCE_REMOVE;
-                                });
-                            }
-                        }
-		            });
-		    }
-		}
-	    } else {
-		let httpHash = GLib.compute_checksum_for_string(
-		    GLib.ChecksumType.MD5, currentArt + '|' + (title || '') + '|' + (artist || ''), -1);
-		let httpCachedPath = GLib.build_filenamev([
-		    this._ownArtCacheDir, httpHash + '.png']);
-		let httpCachedFile = Gio.File.new_for_path(httpCachedPath);
-
-		if (httpCachedFile.query_exists(null)) {
-		    artUrl = httpCachedFile.get_uri();
-		    this._artCacheSet(cacheKey, artUrl);
-		} else {
-		    artUrl = (this._pill && this._pill._lastArtUrl) ? this._pill._lastArtUrl : null;
-
-		    let httpSrcFile = Gio.File.new_for_uri(currentArt);
-		    httpSrcFile.load_contents_async(null, (f, res) => {
-			try {
-			    let [ok, bytes] = f.load_contents_finish(res);
-			    if (ok && bytes && bytes.get_size() > 0) {
-				// Save to cache file
-				let outStream = httpCachedFile.replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
-				outStream.write_bytes(bytes, null);
-				outStream.close(null);
-
-				let newUri = httpCachedFile.get_uri();
-				this._artCacheSet(cacheKey, newUri);
-				if (this._pill && this._pill._lastArtUrl !== newUri && this._getActivePlayer()) {
-				    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-					this._updateUI();
-					return GLib.SOURCE_REMOVE;
-				    });
-				}
-			    }
-			} catch (e) {
-			    console.debug('[Dynamic Music Pill] HTTP art download failed: ' + e.message);
-			}
-		    });
-		}
-	    }
-	}
-
-            if (!artUrl && this._artCache.has(cacheKey)) {
-                let cached = this._artCache.get(cacheKey);
-                let cachedIsFile = cached.startsWith('file://');
-                let cachedExists = !cachedIsFile || Gio.File.new_for_uri(cached).query_exists(null);
-                if (cachedExists) artUrl = cached;
-                else this._artCache.delete(cacheKey);
-            }
-
-            if (!artUrl && trackFileUrl && trackFileUrl.startsWith('file://')) {
-                try {
-                    let hash = GLib.compute_checksum_for_string(GLib.ChecksumType.MD5, trackFileUrl.replace('file://', ''), -1);
-                    let ownFile = Gio.File.new_for_path(GLib.build_filenamev([this._ownArtCacheDir, hash + '.jpg']));
-                    if (ownFile.query_exists(null)) {
-                        artUrl = ownFile.get_uri();
-                        this._artCacheSet(cacheKey, artUrl);
-                    } else {
-                        let info = Gio.File.new_for_uri(trackFileUrl).query_info(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH, Gio.FileQueryInfoFlags.NONE, null);
-                        let thumbPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
-                        if (thumbPath) {
-                            let thumbFile = Gio.File.new_for_path(thumbPath);
-                            if (thumbFile.query_exists(null)) {
-                                artUrl = thumbFile.get_uri();
-                                thumbFile.copy_async(ownFile, Gio.FileCopyFlags.OVERWRITE,
-                                    GLib.PRIORITY_DEFAULT, null, null, (src, res) => {
+                                artUrl = (this._pill && this._pill._lastArtUrl) ? this._pill._lastArtUrl : null;
+                                srcFile.copy_async(cachedFile,
+                                    Gio.FileCopyFlags.OVERWRITE, GLib.PRIORITY_DEFAULT, null, null,
+                                    (src, res) => {
+                                        let success = false;
                                         try {
                                             src.copy_finish(res);
-                                            this._artCacheSet(cacheKey, ownFile.get_uri());
+                                            let cInfo = cachedFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
+                                            if (cInfo && cInfo.get_size() > 0) success = true;
                                         } catch (e) { }
+
+                                        if (success) {
+                                            let newUri = cachedFile.get_uri();
+                                            this._artCacheSet(cacheKey, newUri);
+                                            if (this._pill && this._pill._lastArtUrl !== newUri && this._getActivePlayer()) {
+                                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                                    this._updateUI();
+                                                    return GLib.SOURCE_REMOVE;
+                                                });
+                                            }
+                                        } else {
+                                            this._artCacheSet(cacheKey, currentArt);
+                                            if (this._pill && this._pill._lastArtUrl !== currentArt && this._getActivePlayer()) {
+                                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                                    this._pill.showFor(title, artist, currentArt, active.PlaybackStatus, active._busName, false, active);
+                                                    return GLib.SOURCE_REMOVE;
+                                                });
+                                            }
+
+                                            if (this._getActivePlayer()) {
+                                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                                    if (!this._retryArtTimer) {
+                                                        this._retryArtTimerCount = 0;
+                                                        this._retryArtTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                                                            this._retryArtTimerCount++;
+                                                            if (this._retryArtTimerCount > 10 || !this._pill || (this._pill.is_finalized && this._pill.is_finalized())) {
+                                                                this._retryArtTimer = null;
+                                                                return GLib.SOURCE_REMOVE;
+                                                            }
+                                                            this._updateUI();
+                                                            return GLib.SOURCE_CONTINUE;
+                                                        });
+                                                    }
+                                                    return GLib.SOURCE_REMOVE;
+                                                });
+                                            }
+                                        }
                                     });
                             }
                         }
-                    }
-                } catch (e) {}
-            }
-            
-            if (!artUrl) {
-                let fallbackPath = this._settings ? this._settings.get_string('fallback-art-path') : '';
-                if (fallbackPath && fallbackPath.trim() !== '') {
-                    let file = Gio.File.new_for_path(fallbackPath);
-                    if (file.query_exists(null)) {
-                        artUrl = file.get_uri();
+                    } else {
+                        let httpHash = GLib.compute_checksum_for_string(
+                            GLib.ChecksumType.MD5, currentArt + '|' + (title || '') + '|' + (artist || ''), -1);
+                        let httpCachedPath = GLib.build_filenamev([
+                            this._ownArtCacheDir, httpHash + '.png']);
+                        let httpCachedFile = Gio.File.new_for_path(httpCachedPath);
+
+                        if (httpCachedFile.query_exists(null)) {
+                            artUrl = httpCachedFile.get_uri();
+                            this._artCacheSet(cacheKey, artUrl);
+                        } else {
+                            artUrl = (this._pill && this._pill._lastArtUrl) ? this._pill._lastArtUrl : null;
+
+                            try {
+                                let session = new Soup.Session();
+                                let uri = GLib.Uri.parse(currentArt, GLib.UriFlags.NONE);
+                                let message = new Soup.Message({ method: 'GET', uri });
+                                session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (s, res) => {
+                                    try {
+                                        let bytes = s.send_and_read_finish(res);
+                                        if (bytes && bytes.get_size() > 0) {
+                                            let outStream = httpCachedFile.replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+                                            outStream.write_bytes(bytes, null);
+                                            outStream.close(null);
+
+                                            let newUri = httpCachedFile.get_uri();
+                                            this._artCacheSet(cacheKey, newUri);
+                                            if (this._pill && this._pill._lastArtUrl !== newUri && this._getActivePlayer()) {
+                                                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                                    this._updateUI();
+                                                    return GLib.SOURCE_REMOVE;
+                                                });
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.debug('[Dynamic Music Pill] Soup art download failed: ' + e.message);
+                                        this._artCacheSet(cacheKey, currentArt);
+                                        if (this._pill && this._pill._lastArtUrl !== currentArt && this._getActivePlayer()) {
+                                            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                                this._updateUI();
+                                                return GLib.SOURCE_REMOVE;
+                                            });
+                                        }
+                                    }
+                                });
+                            } catch (e) {
+                                console.debug('[Dynamic Music Pill] Soup session error: ' + e.message);
+                                this._artCacheSet(cacheKey, currentArt);
+                                artUrl = currentArt;
+                            }
+                        }
                     }
                 }
-            }
 
-            if (title && active.PlaybackStatus === 'Playing') {
-                this._recordHistory(title, artist, artUrl);
-            }
+                if (!artUrl && this._artCache.has(cacheKey)) {
+                    let cached = this._artCache.get(cacheKey);
+                    let cachedIsFile = cached.startsWith('file://');
+                    let cachedExists = !cachedIsFile || Gio.File.new_for_uri(cached).query_exists(null);
+                    if (cachedExists) artUrl = cached;
+                    else this._artCache.delete(cacheKey);
+                }
 
-            let needsRetry = false;
-            if (currentArt && currentArt.startsWith('file://')) {
-                let srcFile = Gio.File.new_for_uri(currentArt);
-                if (!srcFile.query_exists(null)) {
-                    needsRetry = true;
-                } else {
-                    let info = null;
+                if (!artUrl && trackFileUrl && trackFileUrl.startsWith('file://')) {
                     try {
-                        info = srcFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
-                    } catch (e) {}
-                    if (info && info.get_size() === 0) needsRetry = true;
+                        let hash = GLib.compute_checksum_for_string(GLib.ChecksumType.MD5, trackFileUrl.replace('file://', ''), -1);
+                        let ownFile = Gio.File.new_for_path(GLib.build_filenamev([this._ownArtCacheDir, hash + '.jpg']));
+                        if (ownFile.query_exists(null)) {
+                            artUrl = ownFile.get_uri();
+                            this._artCacheSet(cacheKey, artUrl);
+                        } else {
+                            let info = Gio.File.new_for_uri(trackFileUrl).query_info(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH, Gio.FileQueryInfoFlags.NONE, null);
+                            let thumbPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+                            if (thumbPath) {
+                                let thumbFile = Gio.File.new_for_path(thumbPath);
+                                if (thumbFile.query_exists(null)) {
+                                    artUrl = thumbFile.get_uri();
+                                    thumbFile.copy_async(ownFile, Gio.FileCopyFlags.OVERWRITE,
+                                        GLib.PRIORITY_DEFAULT, null, null, (src, res) => {
+                                            try {
+                                                src.copy_finish(res);
+                                                this._artCacheSet(cacheKey, ownFile.get_uri());
+                                            } catch (e) { }
+                                        });
+                                }
+                            }
+                        }
+                    } catch (e) { }
                 }
-            }
 
-            if (needsRetry && active.PlaybackStatus === 'Playing' && !this._retryArtTimer) {
-                this._retryArtTimerCount = 0;
-                this._retryArtTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                    this._retryArtTimerCount++;
-                    if (this._retryArtTimerCount > 10 || !this._pill || (this._pill.is_finalized && this._pill.is_finalized())) {
-                        this._retryArtTimer = null;
-                        return GLib.SOURCE_REMOVE;
+                if (!artUrl) {
+                    let fallbackPath = this._settings ? this._settings.get_string('fallback-art-path') : '';
+                    if (fallbackPath && fallbackPath.trim() !== '') {
+                        let file = Gio.File.new_for_path(fallbackPath);
+                        if (file.query_exists(null)) {
+                            artUrl = file.get_uri();
+                        }
                     }
-                    if (this._proxies.has(active._busName)) {
-                        this._updateUI();
+                }
+
+                if (title && active.PlaybackStatus === 'Playing') {
+                    this._recordHistory(title, artist, artUrl);
+                }
+
+                let needsRetry = false;
+                if (currentArt && currentArt.startsWith('file://')) {
+                    let srcFile = Gio.File.new_for_uri(currentArt);
+                    if (!srcFile.query_exists(null)) {
+                        needsRetry = true;
+                    } else {
+                        let info = null;
+                        try {
+                            info = srcFile.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE, null);
+                        } catch (e) { }
+                        if (info && info.get_size() === 0) needsRetry = true;
                     }
-                    return GLib.SOURCE_CONTINUE;
-                });
-            } else if (!needsRetry && this._retryArtTimer) {
-                GLib.Source.remove(this._retryArtTimer);
-                this._retryArtTimer = null;
-            }
-
-            let now = Date.now();
-            let isSkipActive = (now - this._lastActionTime < 3000);
-
-            if (this._settings && this._settings.get_boolean('enable-lyrics') && !this._dbusLyricActive) {
-                let metaObj2 = null;
-                if (active.Metadata) {
-                    metaObj2 = active.Metadata instanceof GLib.Variant ? active.Metadata.deep_unpack() : active.Metadata;
                 }
-                let currentTitle = metaObj2 ? smartUnpack(metaObj2['xesam:title']) : null;
-                let currentArtist = metaObj2 ? smartUnpack(metaObj2['xesam:artist']) : null;
-                if (Array.isArray(currentArtist)) currentArtist = currentArtist.join(', ');
 
-                let currentTrackKey = `${currentTitle}||${currentArtist}`;
-
-                if (currentTitle && this._fetchedTrackKey !== currentTrackKey) {
-                    this._pill.setLyric(null);
-                    this._fetchNetworkLyrics(active);
-                } else if (this._fetchedLyricsData && active.PlaybackStatus === 'Playing') {
-                    this._startLyricsTimer();
-                } else if (active.PlaybackStatus !== 'Playing') {
-                    this._stopLyricsTimer();
+                if (needsRetry && active.PlaybackStatus === 'Playing' && !this._retryArtTimer) {
+                    this._retryArtTimerCount = 0;
+                    this._retryArtTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                        this._retryArtTimerCount++;
+                        if (this._retryArtTimerCount > 10 || !this._pill || (this._pill.is_finalized && this._pill.is_finalized())) {
+                            this._retryArtTimer = null;
+                            return GLib.SOURCE_REMOVE;
+                        }
+                        if (this._proxies.has(active._busName)) {
+                            this._updateUI();
+                        }
+                        return GLib.SOURCE_CONTINUE;
+                    });
+                } else if (!needsRetry && this._retryArtTimer) {
+                    GLib.Source.remove(this._retryArtTimer);
+                    this._retryArtTimer = null;
                 }
-            }
 
-            let finalDisplayArt = artUrl;
-            if (this._pill && !finalDisplayArt && active.PlaybackStatus === 'Playing' && (needsRetry || this._retryArtTimer)) {
-                if (this._pill._lastArtUrl) {
-                    finalDisplayArt = this._pill._lastArtUrl;
+                let now = Date.now();
+                let isSkipActive = (now - this._lastActionTime < 3000);
+
+                if (this._settings && this._settings.get_boolean('enable-lyrics') && !this._dbusLyricActive) {
+                    let metaObj2 = null;
+                    if (active.Metadata) {
+                        metaObj2 = active.Metadata instanceof GLib.Variant ? active.Metadata.deep_unpack() : active.Metadata;
+                    }
+                    let currentTitle = metaObj2 ? smartUnpack(metaObj2['xesam:title']) : null;
+                    let currentArtist = metaObj2 ? smartUnpack(metaObj2['xesam:artist']) : null;
+                    if (Array.isArray(currentArtist)) currentArtist = currentArtist.join(', ');
+
+                    let currentTrackKey = `${currentTitle}||${currentArtist}`;
+
+                    if (currentTitle && this._fetchedTrackKey !== currentTrackKey) {
+                        this._pill.setLyric(null);
+                        this._fetchNetworkLyrics(active);
+                    } else if (this._fetchedLyricsData && active.PlaybackStatus === 'Playing') {
+                        this._startLyricsTimer();
+                    } else if (active.PlaybackStatus !== 'Playing') {
+                        this._stopLyricsTimer();
+                    }
                 }
-            }
 
-            this._pill.updateDisplay(title, artist, finalDisplayArt, active.PlaybackStatus, active._busName, isSkipActive, active);
-        } else {
-            this._stopLyricsTimer();
-            this._fetchedTrackKey = null;
-            this._fetchedLyricsData = null;
-            this._dbusLyricActive = false;
-            this._lastLyricIndex = -1;
-            this._lastPositionSync = 0;
-            this._pill.updateDisplay(null, null, null, 'Stopped', null, false);
+                let finalDisplayArt = artUrl;
+                if (this._pill && !finalDisplayArt && active.PlaybackStatus === 'Playing' && (needsRetry || this._retryArtTimer)) {
+                    if (this._pill._lastArtUrl) {
+                        finalDisplayArt = this._pill._lastArtUrl;
+                    }
+                }
+
+                this._pill.updateDisplay(title, artist, finalDisplayArt, active.PlaybackStatus, active._busName, isSkipActive, active);
+            } else {
+                this._stopLyricsTimer();
+                this._fetchedTrackKey = null;
+                this._fetchedLyricsData = null;
+                this._dbusLyricActive = false;
+                this._lastLyricIndex = -1;
+                this._lastPositionSync = 0;
+                this._pill.updateDisplay(null, null, null, 'Stopped', null, false);
+            }
+        } catch (e) {
+            console.debug(`[Dynamic Music Pill] _updateUI error: ${e.message}`);
         }
-      } catch (e) {
-          console.debug(`[Dynamic Music Pill] _updateUI error: ${e.message}`);
-      }
     }
-    
+
     _isPlayerAllowed(busName) {
         let mode = this._settings.get_int('player-filter-mode');
         if (mode === 0) return true;
 
         let listStr = this._settings.get_string('player-filter-list').toLowerCase();
         let list = listStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        
+
         if (list.length === 0) return mode === 1;
 
         let lowerName = busName.toLowerCase();
@@ -1650,86 +1665,86 @@ export class MusicController {
     }
 
     _getActivePlayer() {
-      try {
-        let proxiesArr = Array.from(this._proxies.values());
-        if (proxiesArr.length === 0) return null;
-        let manualBus = this._settings.get_string('selected-player-bus');
-        if (manualBus && manualBus !== '' && this._proxies.has(manualBus)) {
-            return this._proxies.get(manualBus);
-        }
-        let now = Date.now();
+        try {
+            let proxiesArr = Array.from(this._proxies.values());
+            if (proxiesArr.length === 0) return null;
+            let manualBus = this._settings.get_string('selected-player-bus');
+            if (manualBus && manualBus !== '' && this._proxies.has(manualBus)) {
+                return this._proxies.get(manualBus);
+            }
+            let now = Date.now();
 
-        let filterMode = this._settings.get_int('player-filter-mode');
-        let filterListStr = this._settings.get_string('player-filter-list').toLowerCase();
-        let filterList = filterListStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            let filterMode = this._settings.get_int('player-filter-mode');
+            let filterListStr = this._settings.get_string('player-filter-list').toLowerCase();
+            let filterList = filterListStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-        if (now - this._lastActionTime < 3000 && this._lastWinnerName) {
-            let lockedPlayer = proxiesArr.find(p => p._busName === this._lastWinnerName);
-            if (lockedPlayer) return lockedPlayer;
-        }
-
-        let scoredPlayers = proxiesArr.map(p => {
-            let score = 0;
-            let status = p.PlaybackStatus;
-            let m = p.Metadata;
-
-            if (m) {
-                try {
-                    let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
-                    let url = metaObj['xesam:url'] ? smartUnpack(metaObj['xesam:url']).toLowerCase() : "";
-                    
-                    let isWebContent = url.startsWith('http://') || url.startsWith('https://');
-
-                    if (isWebContent && filterMode === 2) {
-                        let urlMatch = filterList.some(item => url.includes(item));
-                        if (!urlMatch) return { player: p, score: -1 };
-                    }
-                } catch (e) { /* metadata access failed, treat as no metadata */ }
+            if (now - this._lastActionTime < 3000 && this._lastWinnerName) {
+                let lockedPlayer = proxiesArr.find(p => p._busName === this._lastWinnerName);
+                if (lockedPlayer) return lockedPlayer;
             }
 
-            let hasTitle = false;
-            if (m) {
-                try {
-                    let mu = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
-                    hasTitle = !!smartUnpack(mu['xesam:title']);
-                } catch (e) { hasTitle = false; }
-            }
-            if (status === 'Playing' && hasTitle) score = 500;
-            else if (status === 'Paused' && hasTitle) score = 100;
-            return { player: p, score: score };
-        });
+            let scoredPlayers = proxiesArr.map(p => {
+                let score = 0;
+                let status = p.PlaybackStatus;
+                let m = p.Metadata;
 
-        scoredPlayers.sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return b.player._lastPlayingTime - a.player._lastPlayingTime;
-        });
+                if (m) {
+                    try {
+                        let metaObj = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
+                        let url = metaObj['xesam:url'] ? smartUnpack(metaObj['xesam:url']).toLowerCase() : "";
 
-        if (scoredPlayers[0].score < 0) return null;
+                        let isWebContent = url.startsWith('http://') || url.startsWith('https://');
 
-        let winner = scoredPlayers[0].player;
-        if (winner.PlaybackStatus !== 'Playing') {
-            let anyPlaying = scoredPlayers.find(s => {
-                if (s.score <= 0 || s.player.PlaybackStatus !== 'Playing') return false;
-                try {
-                    let md = s.player.Metadata;
-                    if (!md) return false;
-                    let mdu = (md instanceof GLib.Variant) ? md.deep_unpack() : md;
-                    return !!smartUnpack(mdu['xesam:title']);
-                } catch (e) { return false; }
+                        if (isWebContent && filterMode === 2) {
+                            let urlMatch = filterList.some(item => url.includes(item));
+                            if (!urlMatch) return { player: p, score: -1 };
+                        }
+                    } catch (e) { /* metadata access failed, treat as no metadata */ }
+                }
+
+                let hasTitle = false;
+                if (m) {
+                    try {
+                        let mu = (m instanceof GLib.Variant) ? m.deep_unpack() : m;
+                        hasTitle = !!smartUnpack(mu['xesam:title']);
+                    } catch (e) { hasTitle = false; }
+                }
+                if (status === 'Playing' && hasTitle) score = 500;
+                else if (status === 'Paused' && hasTitle) score = 100;
+                return { player: p, score: score };
             });
-            if (anyPlaying) winner = anyPlaying.player;
+
+            scoredPlayers.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return b.player._lastPlayingTime - a.player._lastPlayingTime;
+            });
+
+            if (scoredPlayers[0].score < 0) return null;
+
+            let winner = scoredPlayers[0].player;
+            if (winner.PlaybackStatus !== 'Playing') {
+                let anyPlaying = scoredPlayers.find(s => {
+                    if (s.score <= 0 || s.player.PlaybackStatus !== 'Playing') return false;
+                    try {
+                        let md = s.player.Metadata;
+                        if (!md) return false;
+                        let mdu = (md instanceof GLib.Variant) ? md.deep_unpack() : md;
+                        return !!smartUnpack(mdu['xesam:title']);
+                    } catch (e) { return false; }
+                });
+                if (anyPlaying) winner = anyPlaying.player;
+            }
+            return winner;
+        } catch (e) {
+            console.debug(`[Dynamic Music Pill] _getActivePlayer error: ${e.message}`);
+            return null;
         }
-        return winner;
-      } catch (e) {
-          console.debug(`[Dynamic Music Pill] _getActivePlayer error: ${e.message}`);
-          return null;
-      }
     }
 
     togglePlayback() { let p = this._getActivePlayer(); if (p) p.PlayPauseRemote(); }
     next() { this._lastActionTime = Date.now(); let p = this._getActivePlayer(); if (p) p.NextRemote(); }
     previous() { this._lastActionTime = Date.now(); let p = this._getActivePlayer(); if (p) p.PreviousRemote(); }
-    
+
     _showPillFeedback(iconNameOrGicon, text, percent = null) {
         if (!this._pill || !this._pill._textWrapper) return;
 
@@ -1748,12 +1763,12 @@ export class MusicController {
 
             this._pill._feedbackIcon = new St.Icon({ icon_size: 16 });
             this._pill._feedbackLabel = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
-            
+
             this._pill._feedbackSliderBg = new St.Widget({
                 y_align: Clutter.ActorAlign.CENTER,
                 style: 'border-radius: 4px;',
                 height: 6,
-                width: 80 
+                width: 80
             });
             this._pill._feedbackSliderFill = new St.Widget({
                 style: 'border-radius: 4px;',
@@ -1785,7 +1800,7 @@ export class MusicController {
             this._pill._feedbackIcon.gicon = iconNameOrGicon;
         }
         this._pill._feedbackIcon.set_style(`color: ${color};`);
-        
+
         this._pill._feedbackLabel.text = text;
         this._pill._feedbackLabel.set_style(`font-size: 10.5pt; font-weight: bold; color: ${color};`);
 
@@ -1793,13 +1808,13 @@ export class MusicController {
             this._pill._feedbackSliderBg.show();
             this._pill._feedbackSliderBg.set_style(`background-color: ${bgTrack}; border-radius: 4px;`);
             this._pill._feedbackSliderFill.set_style(`background-color: ${color}; border-radius: 4px;`);
-            
+
             this._pill._feedbackSliderFill.ease({
                 width: Math.max(0, percent * 80),
                 duration: 100,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD
             });
-            
+
             this._pill._feedbackLabel.text = `${Math.round(percent * 100)}%`;
         } else {
             this._pill._feedbackSliderBg.hide();
@@ -1813,9 +1828,9 @@ export class MusicController {
         this._feedbackTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1500, () => {
             this._feedbackTimer = null;
             if (this._pill && this._pill._feedbackBox) {
-                this._pill._feedbackBox.ease({ 
-                    opacity: 0, duration: 150, mode: Clutter.AnimationMode.EASE_OUT_QUAD, 
-                    onStopped: () => { this._pill._feedbackBox.hide(); } 
+                this._pill._feedbackBox.ease({
+                    opacity: 0, duration: 150, mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onStopped: () => { this._pill._feedbackBox.hide(); }
                 });
                 this._pill._textBox.ease({ opacity: 255, duration: 150, mode: Clutter.AnimationMode.EASE_OUT_QUAD });
             }
@@ -1856,7 +1871,7 @@ export class MusicController {
 
     switchPlayer(isNext) {
         let proxiesArr = Array.from(this._proxies.keys());
-        let options = ['', ...proxiesArr]; 
+        let options = ['', ...proxiesArr];
 
         if (options.length <= 1) return;
 
@@ -1873,7 +1888,7 @@ export class MusicController {
         let nextBus = options[currentIndex];
         this._settings.set_string('selected-player-bus', nextBus);
         this._updateUI();
-        
+
         if (this._playerMenu && this._playerMenu.visible) {
             this._playerMenu.populate();
         }
@@ -1892,7 +1907,7 @@ export class MusicController {
 
         this._showPillFeedback(iconNameOrGicon, labelText, null);
     }
-    
+
     toggleShuffle() {
         let p = this._getActivePlayer();
         if (!p) return false;
@@ -1901,13 +1916,13 @@ export class MusicController {
             this._showPillFeedback('dialog-warning-symbolic', _('Not supported'));
             return false;
         }
-        
+
         this._connection.call(
-        p._busName, '/org/mpris/MediaPlayer2', 'org.freedesktop.DBus.Properties', 'Set',
-        new GLib.Variant('(ssv)', ['org.mpris.MediaPlayer2.Player', 'Shuffle', new GLib.Variant('b', !p.Shuffle)]),
-        null, Gio.DBusCallFlags.NONE, -1, null,
-        (conn, res) => { try { conn.call_finish(res); } catch(e) {} }
-    );
+            p._busName, '/org/mpris/MediaPlayer2', 'org.freedesktop.DBus.Properties', 'Set',
+            new GLib.Variant('(ssv)', ['org.mpris.MediaPlayer2.Player', 'Shuffle', new GLib.Variant('b', !p.Shuffle)]),
+            null, Gio.DBusCallFlags.NONE, -1, null,
+            (conn, res) => { try { conn.call_finish(res); } catch (e) { } }
+        );
         return true;
     }
 
@@ -1919,16 +1934,16 @@ export class MusicController {
             this._showPillFeedback('dialog-warning-symbolic', _('Not supported'));
             return false;
         }
-        
+
         let current = p.LoopStatus || 'None';
         let next = current === 'None' ? 'Playlist' : (current === 'Playlist' ? 'Track' : 'None');
-        
+
         this._connection.call(
-        p._busName, '/org/mpris/MediaPlayer2', 'org.freedesktop.DBus.Properties', 'Set',
-        new GLib.Variant('(ssv)', ['org.mpris.MediaPlayer2.Player', 'LoopStatus', new GLib.Variant('s', next)]),
-        null, Gio.DBusCallFlags.NONE, -1, null,
-        (conn, res) => { try { conn.call_finish(res); } catch(e) {} }
-    );
+            p._busName, '/org/mpris/MediaPlayer2', 'org.freedesktop.DBus.Properties', 'Set',
+            new GLib.Variant('(ssv)', ['org.mpris.MediaPlayer2.Player', 'LoopStatus', new GLib.Variant('s', next)]),
+            null, Gio.DBusCallFlags.NONE, -1, null,
+            (conn, res) => { try { conn.call_finish(res); } catch (e) { } }
+        );
         return true;
     }
 
@@ -1949,7 +1964,7 @@ export class MusicController {
             p._busName, '/org/mpris/MediaPlayer2', 'org.mpris.MediaPlayer2.Player', 'Seek',
             new GLib.Variant('(x)', [offsetUs]),
             null, Gio.DBusCallFlags.NONE, -1, null,
-            (conn, res) => { try { conn.call_finish(res); } catch(e) {} }
+            (conn, res) => { try { conn.call_finish(res); } catch (e) { } }
         );
 
         this._showPillFeedback(
@@ -1973,7 +1988,7 @@ export class MusicController {
             p._busName, '/org/mpris/MediaPlayer2', 'org.freedesktop.DBus.Properties', 'Set',
             new GLib.Variant('(ssv)', ['org.mpris.MediaPlayer2.Player', 'Rate', new GLib.Variant('d', rate)]),
             null, Gio.DBusCallFlags.NONE, -1, null,
-            (conn, res) => { try { conn.call_finish(res); } catch(e) {} }
+            (conn, res) => { try { conn.call_finish(res); } catch (e) { } }
         );
         this._showPillFeedback('power-profile-performance-symbolic', `${rate}×`);
         return true;
@@ -1985,7 +2000,7 @@ export class MusicController {
         try {
             let v = p.get_cached_property('Rate');
             if (v) return v.unpack();
-        } catch(e) {}
+        } catch (e) { }
         return 1.0;
     }
 
@@ -2009,14 +2024,14 @@ export class MusicController {
             try {
                 let v = p.get_cached_property(name);
                 if (v) return v.unpack();
-            } catch(e) {}
+            } catch (e) { }
             return false;
         };
         const readDouble = (name) => {
             try {
                 let v = p.get_cached_property(name);
                 if (v) return v.unpack();
-            } catch(e) {}
+            } catch (e) { }
             return null;
         };
 
@@ -2089,7 +2104,7 @@ export class MusicController {
                 break;
             }
         }
-        
+
         if (foundIdx !== -1) {
             let existing = this._trackHistory[foundIdx];
             if (foundIdx === 0 || (now - existing.time < 30000)) {
@@ -2103,21 +2118,21 @@ export class MusicController {
                             let cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'dynamic-music-pill', 'art']);
                             GLib.mkdir_with_parents(cacheDir, 0o755);
                             let destPath = GLib.build_filenamev([cacheDir, 'hist_' + hashKey + '.jpg']);
-                            let srcFile  = Gio.File.new_for_uri(artUrl);
+                            let srcFile = Gio.File.new_for_uri(artUrl);
                             let destFile = Gio.File.new_for_path(destPath);
                             srcFile.copy_async(destFile, Gio.FileCopyFlags.OVERWRITE,
                                 GLib.PRIORITY_DEFAULT, null, null, (src, res) => {
                                     try { src.copy_finish(res); } catch (e) { }
                                 });
                             localArtUrl = destFile.get_uri();
-                        } catch(e) {}
+                        } catch (e) { }
                     }
 
                     if (existing.artUrl !== localArtUrl) {
                         this._deleteHistoryArt(existing.artUrl);
                         existing.artUrl = localArtUrl;
                         existing.avgColor = null;
-                        try { this._settings.set_string('playback-history', JSON.stringify(this._trackHistory)); } catch(e) {}
+                        try { this._settings.set_string('playback-history', JSON.stringify(this._trackHistory)); } catch (e) { }
                     }
                 }
                 return;
@@ -2132,14 +2147,14 @@ export class MusicController {
                 let cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'dynamic-music-pill', 'art']);
                 GLib.mkdir_with_parents(cacheDir, 0o755);
                 let destPath = GLib.build_filenamev([cacheDir, 'hist_' + hashKey + '.jpg']);
-                let srcFile  = Gio.File.new_for_uri(artUrl);
+                let srcFile = Gio.File.new_for_uri(artUrl);
                 let destFile = Gio.File.new_for_path(destPath);
                 srcFile.copy_async(destFile, Gio.FileCopyFlags.OVERWRITE,
                     GLib.PRIORITY_DEFAULT, null, null, (src, res) => {
                         try { src.copy_finish(res); } catch (e) { /* ignore */ }
                     });
                 localArtUrl = destFile.get_uri();
-            } catch(e) {  }
+            } catch (e) { }
         }
 
         this._trackHistory.unshift({ title, artist: artist || '', artUrl: localArtUrl, time: now, avgColor: null });
@@ -2151,7 +2166,7 @@ export class MusicController {
 
         try {
             this._settings.set_string('playback-history', JSON.stringify(this._trackHistory));
-        } catch(e) {}
+        } catch (e) { }
     }
 
     _deleteHistoryArt(artUrl) {
@@ -2162,7 +2177,7 @@ export class MusicController {
             if (path.includes('/dynamic-music-pill/art/hist_')) {
                 if (file.query_exists(null)) file.delete(null);
             }
-        } catch(e) {  }
+        } catch (e) { }
     }
 
     getTrackHistory() {
@@ -2176,7 +2191,7 @@ export class MusicController {
         this._trackHistory = [];
         try {
             this._settings.set_string('playback-history', '[]');
-        } catch(e) {}
+        } catch (e) { }
     }
 
     _updateDefaultPlayerVisibility(shouldReset = false) {
@@ -2184,10 +2199,10 @@ export class MusicController {
         const hide = this._settings.get_boolean('hide-default-player');
 
         const MprisSource = Mpris.MprisSource ?? Mpris.MediaSection;
-        const mediaSection = Main.panel.statusArea.dateMenu?._messageList?._messageView?._mediaSource ?? 
-                             Main.panel.statusArea.dateMenu?._messageList?._mediaSection;
-        const qsMedia = Main.panel.statusArea.quickSettings?._media || 
-                        Main.panel.statusArea.quickSettings?._mediaSection;
+        const mediaSection = Main.panel.statusArea.dateMenu?._messageList?._messageView?._mediaSource ??
+            Main.panel.statusArea.dateMenu?._messageList?._mediaSection;
+        const qsMedia = Main.panel.statusArea.quickSettings?._media ||
+            Main.panel.statusArea.quickSettings?._mediaSection;
 
         if (this._origMediaAddPlayer && (shouldReset || hide === false)) {
             MprisSource.prototype._addPlayer = this._origMediaAddPlayer;
@@ -2197,7 +2212,7 @@ export class MusicController {
             if (qsMedia && qsMedia._onProxyReady) qsMedia._onProxyReady();
         } else if (!this._origMediaAddPlayer && hide === true) {
             this._origMediaAddPlayer = MprisSource.prototype._addPlayer;
-            MprisSource.prototype._addPlayer = function () {};
+            MprisSource.prototype._addPlayer = function () { };
 
             [mediaSection, qsMedia].forEach(section => {
                 if (section && section._players) {

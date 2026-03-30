@@ -678,7 +678,7 @@ export const ExpandedPlayer = GObject.registerClass(
             let showVinyl = this._settings.get_boolean('popup-show-vinyl');
             if (!artUrl || !showVinyl) {
                 if (!this._artVisibilityTimer) {
-                    this._artVisibilityTimer = GLib.timeout_add_once(GLib.PRIORITY_DEFAULT, 1000, () => {
+                    this._artVisibilityTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
                         this._artVisibilityTimer = null;
                         this._vinylBin.hide();
                         this._vinyl.hide();
@@ -695,6 +695,7 @@ export const ExpandedPlayer = GObject.registerClass(
                                 topRow.x_align = Clutter.ActorAlign.CENTER;
                             }
                         }
+                        return GLib.SOURCE_REMOVE;
                     });
                 }
             } else {
