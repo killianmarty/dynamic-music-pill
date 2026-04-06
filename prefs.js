@@ -27,7 +27,8 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             'popup-show-player-selector','show-pill-border','invert-scroll-direction','always-show-pill','popup-hide-on-leave',
             'visualizer-bars','enable-lyrics','app-name-mapping', 'lyric-fade-enable', 'lyric-fade-duration','visualizer-bar-width', 'visualizer-height',
             'popup-visualizer-bars', 'popup-visualizer-bar-width', 'popup-visualizer-height','edge-margin','popup-vinyl-speed','sync-accent-color',
-            'enable-custom-buttons', 'custom-button-1', 'custom-button-2', 'playback-history'
+            'enable-custom-buttons', 'custom-button-1', 'custom-button-2', 'playback-history',
+            'show-hours-format', 'popup-show-album-title'
         ];
 
         // =========================================
@@ -37,6 +38,15 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             title: _('Main Pill'),
             icon_name: 'preferences-system-symbolic'
         });
+
+        // Track GLib sources for cleanup (EGO016 compliance)
+        const _pendingSources = [];
+        const _trackSource = (id) => { if (id) _pendingSources.push(id); return id; };
+        const _cleanupSources = () => {
+            _pendingSources.forEach(id => { try { GLib.Source.remove(id); } catch(e) {} });
+            _pendingSources.length = 0;
+        };
+        window.connect('close-request', () => { _cleanupSources(); });
 
         const genGroup = new Adw.PreferencesGroup({ title: _('General Settings') });
         
@@ -508,6 +518,24 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         settings.bind('popup-show-player-selector', popSelectorToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
         popSelectorRow.add_suffix(popSelectorToggle);
         popupGroup.add(popSelectorRow);
+
+        const popAlbumRow = new Adw.ActionRow({
+            title: _('Show Album Title'),
+            subtitle: _('Display album name next to the artist (Artist \u2022 Album)')
+        });
+        const popAlbumToggle = new Gtk.Switch({ active: settings.get_boolean('popup-show-album-title'), valign: Gtk.Align.CENTER });
+        settings.bind('popup-show-album-title', popAlbumToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
+        popAlbumRow.add_suffix(popAlbumToggle);
+        popupGroup.add(popAlbumRow);
+
+        const hoursRow = new Adw.ActionRow({
+            title: _('Show HH:MM:SS'),
+            subtitle: _('Display hours in the time labels when media is longer than 60 minutes')
+        });
+        const hoursToggle = new Gtk.Switch({ active: settings.get_boolean('show-hours-format'), valign: Gtk.Align.CENTER });
+        settings.bind('show-hours-format', hoursToggle, 'active', Gio.SettingsBindFlags.DEFAULT);
+        hoursRow.add_suffix(hoursToggle);
+        popupGroup.add(hoursRow);
 
         settings.bind('popup-custom-width', popCustomWidthRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         settings.bind('popup-use-custom-width', popCustomWidthRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
@@ -1191,10 +1219,10 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                         settings.set_string('app-name-mapping', newPairs.join(','));
                         
                         saveBtn.set_icon_name('object-select-symbolic');
-                        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1500, () => {
+                        _trackSource(GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1500, () => {
                             if (saveBtn) saveBtn.set_icon_name('document-save-symbolic');
                             return GLib.SOURCE_REMOVE;
-                        });
+                        }));
                     };
 
                     saveBtn.connect('clicked', saveAction);
@@ -1214,11 +1242,11 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                         let newPairs = currentPairs.filter(p => !p.startsWith(mprisName + ':'));
                         settings.set_string('app-name-mapping', newPairs.join(','));
                         
-                        GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                        _trackSource(GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                             refreshAppMappings(); 
                             if (typeof updateDetectedPlayers === 'function') updateDetectedPlayers();
                             return GLib.SOURCE_REMOVE;
-                        });
+                        }));
                     });
 
                     btnBox.append(saveBtn);
@@ -1292,11 +1320,11 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
                                     let newVal = currentVal ? `${currentVal},${shortName}:ENTER_APP_ID_HERE` : `${shortName}:ENTER_APP_ID_HERE`;
                                     settings.set_string('app-name-mapping', newVal);
                                     
-                                    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                                    _trackSource(GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                                         refreshAppMappings();
                                         updateDetectedPlayers();
                                         return GLib.SOURCE_REMOVE;
-                                    });
+                                    }));
                                 });
 
                                 row.add_suffix(btn);

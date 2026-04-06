@@ -531,6 +531,11 @@ export const MusicPill = GObject.registerClass(
 
         _setPopupOpen(isOpen) {
             this._isPopupOpen = isOpen;
+            if (isOpen) {
+                // Signal pill scroll labels to finish current cycle then stop
+                if (this._titleScroll) this._titleScroll.setPendingScrollStop(true);
+                if (this._artistScroll) this._artistScroll.setPendingScrollStop(true);
+            }
             this._updateDimensions();
         }
 
@@ -902,9 +907,16 @@ export const MusicPill = GObject.registerClass(
         }
 
         setLyric(lyricObj) {
-            let wasActive = !!(this._lyricObj && this._lyricObj.content);
+            let oldContent = this._lyricObj ? this._lyricObj.content : null;
+            let newContent = lyricObj ? lyricObj.content : null;
+            let oldTime = this._lyricObj ? this._lyricObj.time : null;
+            let newTime = lyricObj ? lyricObj.time : null;
+            
+            if (oldContent === newContent && oldTime === newTime) return;
+
+            let wasActive = !!oldContent;
             this._lyricObj = lyricObj;
-            let isActive = !!(this._lyricObj && this._lyricObj.content);
+            let isActive = !!newContent;
 
             if (!this._isActiveState) return;
             this._updateTextDisplay(true);

@@ -31,11 +31,15 @@ export function getAverageColor(pixbuf) {
     return { r: Math.floor(r / count), g: Math.floor(g / count), b: Math.floor(b / count) };
 }
 
-export function formatTime(microSeconds) {
-    if (!microSeconds || microSeconds < 0) return "0:00";
-    let seconds = Math.floor(microSeconds / 1000000);
-    let min = Math.floor(seconds / 60);
-    let sec = seconds % 60;
+export function formatTime(microSeconds, forceHours = false) {
+    if (!microSeconds || microSeconds < 0) return forceHours ? "0:00:00" : "0:00";
+    let totalSeconds = Math.floor(microSeconds / 1000000);
+    let hours = Math.floor(totalSeconds / 3600);
+    let min = Math.floor((totalSeconds % 3600) / 60);
+    let sec = totalSeconds % 60;
+    if (forceHours || hours > 0) {
+        return `${hours}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`;
+    }
     return `${min}:${sec < 10 ? '0' + sec : sec}`;
 }
 

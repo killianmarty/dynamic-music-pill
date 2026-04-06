@@ -1234,6 +1234,20 @@ export class MusicController {
             this._syncPosition(active);
         }
 
+        // Stale position detection for KDE Connect / GS Connect
+        let cachedPos = active._lastPosition || 0;
+        if (cachedPos === (this._lastLyricPosition || 0)) {
+            this._stalePositionCount = (this._stalePositionCount || 0) + 1;
+        } else {
+            this._stalePositionCount = 0;
+            this._lastLyricPosition = cachedPos;
+        }
+
+        if (this._stalePositionCount > 15) {
+            if (this._pill) this._pill.setLyric(null);
+            return;
+        }
+
         let positionUs = active._lastPosition + (now - active._lastPositionTime) * 1000;
         let positionMs = positionUs / 1000;
 

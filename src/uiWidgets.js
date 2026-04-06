@@ -113,6 +113,8 @@ export const ScrollLabel = GObject.registerClass(
             this._isScrolling = false;
             this._hoverOnly = settings.get_boolean('scroll-on-hover-only');
             this._hovered = false;
+            this._forceScroll = false;
+            this._pendingScrollStop = false;
             this._container = new PixelSnappedBox({ x_expand: true, y_expand: true, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER });
             this._container.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
             this.add_child(this._container);
@@ -211,11 +213,26 @@ export const ScrollLabel = GObject.registerClass(
             if (hovered) {
                 this._checkResize();
             } else {
-                this._stopAnimation(true);
-                this._container.x_align = Clutter.ActorAlign.CENTER;
-                this._label2.hide();
-                this._separator.hide();
+                if (this._lyricTime > 0) return;
+                if (this._forceScroll) return;
+                if (this._isScrolling) {
+                    this._pendingScrollStop = true;
+                } else {
+                    this._stopAnimation(true);
+                    this._container.x_align = Clutter.ActorAlign.CENTER;
+                    this._label2.hide();
+                    this._separator.hide();
+                }
             }
+        }
+
+        setForceScroll(force) {
+            this._forceScroll = force;
+            if (force) this._checkResize();
+        }
+
+        setPendingScrollStop(stop) {
+            this._pendingScrollStop = stop;
         }
 
         _checkResize() {
@@ -244,7 +261,7 @@ export const ScrollLabel = GObject.registerClass(
                 if (needsScroll && !isScrolling) {
                     this._container.x_align = Clutter.ActorAlign.START;
                     if (this._lyricTime > 0) this._startLyricScroll(textWidth);
-                    else if (!this._hoverOnly || this._hovered) this._startInfiniteScroll(textWidth);
+                    else if (!this._hoverOnly || this._hovered || this._forceScroll) this._startInfiniteScroll(textWidth);
                 } else if (!needsScroll && isScrolling) {
                     this._stopAnimation(true);
                     this._container.x_align = Clutter.ActorAlign.CENTER;
@@ -330,7 +347,7 @@ export const ScrollLabel = GObject.registerClass(
                 if (this._lyricTime > 0) {
                     this._startLyricScroll(textWidth);
                 } else if (this._settings.get_boolean('scroll-text')) {
-                    if (!this._hoverOnly || this._hovered) {
+                    if (!this._hoverOnly || this._hovered || this._forceScroll) {
                         this._startInfiniteScroll(textWidth);
                     }
                 }
@@ -358,13 +375,24 @@ export const ScrollLabel = GObject.registerClass(
                     this._scrollTimer = null;
                     if (this._gameMode || !this.get_parent()) return GLib.SOURCE_REMOVE;
 
+                    if (this._pendingScrollStop) {
+                        this._pendingScrollStop = false;
+                        this._isScrolling = false;
+                        this._stopAnimation(true);
+                        this._container.x_align = Clutter.ActorAlign.CENTER;
+                        this._label2.hide();
+                        this._separator.hide();
+                        return GLib.SOURCE_REMOVE;
+                    }
+
                     this._setFadeOutEffect(true, true, true);
 
                     this._container.ease({
                         translation_x: -distance, duration: duration, mode: Clutter.AnimationMode.LINEAR,
                         onStopped: (isFinished) => {
-                            if (!isFinished || this._gameMode) {
+                            if (!isFinished || this._gameMode || this._pendingScrollStop) {
                                 this._isScrolling = false;
+                                this._pendingScrollStop = false;
                                 return;
                             }
 

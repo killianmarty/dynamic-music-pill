@@ -193,7 +193,9 @@ export const ExpandedPlayer = GObject.registerClass(
             infoBox.layout_manager.orientation = Clutter.Orientation.VERTICAL;
 
             this._titleLabel = new ScrollLabel('expanded-title', this._settings);
+            this._titleLabel.setForceScroll(true);
             this._artistLabel = new ScrollLabel('expanded-artist', this._settings);
+            this._artistLabel.setForceScroll(true);
 
             this._visualizer = new WaveformVisualizer(80, this._settings, true);
 
@@ -357,6 +359,16 @@ export const ExpandedPlayer = GObject.registerClass(
             controlsRow.add_child(this._customBtn2);
             controlsRow.add_child(this._repeatBtn);
 
+            this._settings.connectObject('changed::popup-show-album-title', () => {
+                if (this.visible && this._player) {
+                    let m = this._player.Metadata;
+                    let title = m ? smartUnpack(m['xesam:title']) : null;
+                    let artist = m ? smartUnpack(m['xesam:artist']) : null;
+                    if (Array.isArray(artist)) artist = artist.join(', ');
+                    let artUrl = this._currentArtUrl;
+                    this.updateContent(title, artist, artUrl, this._lastStatus);
+                }
+            }, this);
             this._settings.connectObject('changed::enable-custom-buttons', () => this._updateCustomButtons(), this);
             this._settings.connectObject('changed::custom-button-1', () => this._updateCustomButtons(), this);
             this._settings.connectObject('changed::custom-button-2', () => this._updateCustomButtons(), this);
@@ -662,8 +674,15 @@ export const ExpandedPlayer = GObject.registerClass(
             if (this._titleLabel && this._titleLabel._text !== title) {
                 this._titleLabel.setText(title || _('Unknown Title'), false);
             }
-            if (this._artistLabel && this._artistLabel._text !== artist) {
-                this._artistLabel.setText(artist || _('Unknown Artist'), false);
+
+            let displayArtist = artist || _('Unknown Artist');
+            if (this._settings.get_boolean('popup-show-album-title') && this._player) {
+                let m = this._player.Metadata;
+                let album = m ? smartUnpack(m['xesam:album']) : null;
+                if (album) displayArtist = `${displayArtist}  •  ${album}`;
+            }
+            if (this._artistLabel && this._artistLabel._text !== displayArtist) {
+                this._artistLabel.setText(displayArtist, false);
             }
 
             this._seekLockTime = 0;
@@ -673,6 +692,23 @@ export const ExpandedPlayer = GObject.registerClass(
             if (trackChanged && this._player) {
                 this._player._lastPosition = 0;
                 this._player._lastPositionTime = Date.now();
+
+                // Reset stale detection and seeker state for new track
+                this._lastTickPosition = undefined;
+                this._lastTickTime = undefined;
+                this._lastPositionSync = 0;
+                this._lastTickLength = 0;
+
+                // Force slider to start and recalculate time label widths
+                if (this._sliderFill) this._sliderFill.width = 6;
+                if (this._currentTimeLabel) {
+                    this._currentTimeLabel.text = '0:00';
+                    this._currentTimeLabel.set_width(-1);
+                }
+                if (this._totalTimeLabel) {
+                    this._totalTimeLabel.text = '0:00';
+                    this._totalTimeLabel.set_width(-1);
+                }
             }
 
             let showVinyl = this._settings.get_boolean('popup-show-vinyl');
@@ -1261,8 +1297,20 @@ export const ExpandedPlayer = GObject.registerClass(
                 sliderBg.add_child(sliderFill);
                 let volLabel = new St.Label({ text: `${Math.round(frac0 * 100)}%`, style: `color:${ta};min-width:38px;text-align:right;`, y_align: Clutter.ActorAlign.CENTER });
 
-                const upd = (f) => { f = Math.max(0, Math.min(1, f)); let w = sliderBg.get_width(); if (w > 0) sliderFill.width = Math.round(w * f); volLabel.text = `${Math.round(f * 100)}%`; };
+                const upd = (f) => { f = Math.max(0, Math.min(1, f)); if (!sliderBg.has_allocation || !sliderBg.has_allocation()) { volLabel.text = `${Math.round(f * 100)}%`; return; } let w = sliderBg.get_width(); if (w > 0) sliderFill.width = Math.round(w * f); volLabel.text = `${Math.round(f * 100)}%`; };
                 const applyVol = (f) => { f = Math.max(0, Math.min(1, f)); stream.volume = Math.round(f * maxVol); stream.push_volume(); if (stream.is_muted && f > 0) stream.change_is_muted(false); };
+
+                // Throttle volume changes during drag to prevent audio crackling
+                let _lastApplyTime = 0;
+                let _lastDragFrac = 0;
+                const applyVolThrottled = (f) => {
+                    _lastDragFrac = f;
+                    let now = Date.now();
+                    if (now - _lastApplyTime < 30) return;
+                    _lastApplyTime = now;
+                    applyVol(f);
+                };
+
                 const drag = (ev) => {
                     let [ex, ey] = ev.get_coords();
                     let [ok, relX, relY] = sliderBg.transform_stage_point(ex, ey);
@@ -1271,7 +1319,7 @@ export const ExpandedPlayer = GObject.registerClass(
                         if (sw <= 0) return;
                         let f = Math.max(0, Math.min(1, relX / sw));
                         upd(f);
-                        applyVol(f);
+                        applyVolThrottled(f);
                     }
                 };
 
@@ -1284,6 +1332,7 @@ export const ExpandedPlayer = GObject.registerClass(
 
                 const syncFromStream = () => {
                     if (!sliderBg.get_parent()) return;
+                    if (sliderBg._drag) return; // Don't sync from stream while dragging
                     let f = stream.is_muted ? 0 : Math.min(1, stream.volume / maxVol);
                     upd(f);
                     muteBtn.label = stream.is_muted ? _('Unmute') : _('Mute');
@@ -1293,7 +1342,7 @@ export const ExpandedPlayer = GObject.registerClass(
                 stream.connectObject('notify::is-muted', syncFromStream, subpage);
 
                 sliderBg.connectObject('button-press-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = true; drag(e); return Clutter.EVENT_STOP; }, subpage);
-                sliderBg.connectObject('button-release-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = false; return Clutter.EVENT_STOP; }, subpage);
+                sliderBg.connectObject('button-release-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = false; applyVol(_lastDragFrac); return Clutter.EVENT_STOP; }, subpage);
                 sliderBg.connectObject('motion-event', (a, e) => { if (sliderBg._drag) drag(e); return Clutter.EVENT_STOP; }, subpage);
 
                 global.stage.connectObject('captured-event', (stage, ev) => {
@@ -1301,11 +1350,11 @@ export const ExpandedPlayer = GObject.registerClass(
                     if (t === Clutter.EventType.MOTION) {
                         if (sliderBg._drag) drag(ev);
                     } else if (t === Clutter.EventType.BUTTON_RELEASE) {
-                        sliderBg._drag = false;
+                        if (sliderBg._drag) { sliderBg._drag = false; applyVol(_lastDragFrac); }
                     }
                     return Clutter.EVENT_PROPAGATE;
                 }, subpage);
-                sliderBg.connectObject('touch-event', (a, e) => { let t = e.type(); if (t === Clutter.EventType.TOUCH_BEGIN || t === Clutter.EventType.TOUCH_UPDATE) { drag(e); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
+                sliderBg.connectObject('touch-event', (a, e) => { let t = e.type(); if (t === Clutter.EventType.TOUCH_BEGIN || t === Clutter.EventType.TOUCH_UPDATE) { drag(e); return Clutter.EVENT_STOP; } if (t === Clutter.EventType.TOUCH_END) { applyVol(_lastDragFrac); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
 
                 sliderRow.add_child(sliderBg);
                 sliderRow.add_child(volLabel);
@@ -1317,7 +1366,14 @@ export const ExpandedPlayer = GObject.registerClass(
                 muteBtn.connectObject('touch-event', (a, e) => { if (e.type() === Clutter.EventType.TOUCH_END) { doMute(); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
                 contentBox.add_child(muteBtn);
 
-                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 80, () => { if (!sliderBg.get_parent()) return GLib.SOURCE_REMOVE; upd(frac0); return GLib.SOURCE_REMOVE; });
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    if (!sliderBg.get_parent() || !subpage.get_parent()) return GLib.SOURCE_REMOVE;
+                    if (sliderBg.has_allocation && sliderBg.has_allocation() && sliderBg.get_width() > 0) {
+                        upd(frac0);
+                        return GLib.SOURCE_REMOVE;
+                    }
+                    return GLib.SOURCE_CONTINUE;
+                });
             });
         }
 
@@ -1678,6 +1734,11 @@ export const ExpandedPlayer = GObject.registerClass(
 
         _startTimer() {
             if (this._updateTimer) GLib.Source.remove(this._updateTimer);
+            // Reset stale detection state for fresh popup session
+            this._lastTickPosition = undefined;
+            this._lastTickTime = undefined;
+            this._lastPositionSync = 0;
+            this._lastTickLength = 0;
             this._updateTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
                 this._tick();
                 return GLib.SOURCE_CONTINUE;
@@ -1700,29 +1761,61 @@ export const ExpandedPlayer = GObject.registerClass(
             let now = Date.now();
             if (now - this._seekLockTime < 2000) return GLib.SOURCE_CONTINUE;
 
+            // Periodically sync position from DBus to keep _lastPositionTime fresh
+            if (this._player.PlaybackStatus === 'Playing' &&
+                (!this._lastPositionSync || now - this._lastPositionSync > 5000)) {
+                this._lastPositionSync = now;
+                if (this._controller) this._controller._syncPosition(this._player);
+            }
+
             let cachedPos = this._player._lastPosition || 0;
             let lastUpdate = this._player._lastPositionTime || now;
 
-            let currentPos = cachedPos;
+
+            let isStale = false;
             if (this._player.PlaybackStatus === 'Playing') {
+                if (cachedPos === (this._lastTickPosition || 0) && (now - lastUpdate) > 6000
+                    && this._lastTickTime && (now - this._lastTickTime) > 6000) {
+                    isStale = true;
+                }
+                if (cachedPos !== (this._lastTickPosition || 0)) this._lastTickTime = now;
+                this._lastTickPosition = cachedPos;
+            }
+
+            let currentPos = cachedPos;
+            if (this._player.PlaybackStatus === 'Playing' && !isStale) {
                 currentPos += (now - lastUpdate) * 1000;
             }
             if (currentPos > length) currentPos = length;
 
-             let newCurrentText = formatTime(currentPos);
+            let useHours = length >= 3600000000 && this._settings.get_boolean('show-hours-format');
+
+
+            if (this._lastTickLength && this._lastTickLength !== length) {
+                let prevUseHours = this._lastTickLength >= 3600000000 && this._settings.get_boolean('show-hours-format');
+                if (prevUseHours !== useHours) {
+                    this._currentTimeLabel.set_width(-1);
+                    this._totalTimeLabel.set_width(-1);
+                }
+            }
+            this._lastTickLength = length;
+
+            let newCurrentText = isStale ? '--:--' : formatTime(currentPos, useHours);
             if (this._currentTimeLabel.text !== newCurrentText) {
                 this._currentTimeLabel.text = newCurrentText;
                 this._currentTimeLabel.set_width(-1);
                 let [, natWC] = this._currentTimeLabel.get_preferred_width(-1);
                 this._currentTimeLabel.set_width(Math.ceil(natWC) + 2);
             }
-            let newTotalText = formatTime(length);
+            let newTotalText = isStale ? '--:--' : formatTime(length, useHours);
             if (this._totalTimeLabel.text !== newTotalText) {
                 this._totalTimeLabel.text = newTotalText;
                 this._totalTimeLabel.set_width(-1);
                 let [, natWT] = this._totalTimeLabel.get_preferred_width(-1);
                 this._totalTimeLabel.set_width(Math.ceil(natWT) + 2);
             }
+
+            if (isStale) return;
 
             let percent = Math.min(1, Math.max(0, currentPos / length));
             let totalW = Math.round(this._sliderBin.get_width());
@@ -1757,7 +1850,8 @@ export const ExpandedPlayer = GObject.registerClass(
             this._player._lastPosition = targetPos;
             this._player._lastPositionTime = Date.now();
 
-            this._currentTimeLabel.text = formatTime(targetPos);
+            let useHours = length >= 3600000000 && this._settings.get_boolean('show-hours-format');
+            this._currentTimeLabel.text = formatTime(targetPos, useHours);
             let totalW = Math.round(this._sliderBin.get_width());
 
             if (totalW > 0) {

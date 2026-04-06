@@ -299,7 +299,7 @@
       <summary>Show Album Art</summary>
     </key>
 	<key name="enable-lyrics" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Enable Lyrics Display</summary>
     </key>
     <key name="lyrics-language-preference" type="i">
@@ -372,6 +372,16 @@
       <default>false</default>
       <summary>Has seen first-time settings hint</summary>
       <description>Whether the user has dismissed the first-time hint in the popup.</description>
+    </key>
+    <key name="show-hours-format" type="b">
+      <default>true</default>
+      <summary>Show HH:MM:SS for long media</summary>
+      <description>Display time as HH:MM:SS instead of MM:SS when the media file is longer than 60 minutes.</description>
+    </key>
+    <key name="popup-show-album-title" type="b">
+      <default>false</default>
+      <summary>Show Album Title in Pop-up</summary>
+      <description>Display album name next to the artist in the popup (Artist • Album).</description>
     </key>
   </schema>
 </schemalist>
