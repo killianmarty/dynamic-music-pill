@@ -9,58 +9,91 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
-        uuid = "dynamic-music-pill@andbal";
-        version = self.shortRev or self.dirtyShortRev or "dev";
+        pkgs = import nixpkgs { inherit system; };
+        lib = pkgs.lib;
 
-        mkExtension = { pname, src, gnomeVersions }:
-          pkgs.stdenv.mkDerivation {
-            inherit pname src version;
+                extensionSrc = lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type:
+            let
+              rel = lib.removePrefix (toString ./. + "/") (toString path);
+            in
+              rel == "" ||
+              builtins.elem rel [
+                "metadata.json"
+                "extension.js"
+                "prefs.js"
+                "stylesheet.css"
+                "LICENSE"
+              ] ||
+              rel == "src" ||
+              rel == "schemas" ||
+              lib.hasPrefix "src/" rel ||
+              lib.hasPrefix "schemas/" rel;
+        };
 
-            nativeBuildInputs = [ pkgs.glib ];
+                 version =
+          if self ? rev then self.rev
+          else if self ? dirtyRev then self.dirtyRev
+          else "dirty";
+      in
+      {
+        packages.default = pkgs.stdenvNoCC.mkDerivation {
+          pname = "gnome-shell-extension-dynamic-music-pill";
+          inherit version;
+          src = extensionSrc;
 
-            buildPhase = ''
-              glib-compile-schemas schemas/
-            '';
+                    nativeBuildInputs = [ pkgs.glib ];
+
 
             installPhase = ''
               runHook preInstall
 
-              extDir=$out/share/gnome-shell/extensions/${uuid}
-              mkdir -p $extDir
+              extDir="$out/share/gnome-shell/extensions/dynamic-music-pill@andbal"
+              mkdir -p "$extDir"
 
-              cp metadata.json extension.js prefs.js stylesheet.css $extDir/
-              cp -r src     $extDir/
-              cp -r schemas $extDir/
-              cp -r locale  $extDir/
+              cp metadata.json extension.js prefs.js stylesheet.css "$extDir"/
+            cp -r src "$extDir/"
+            cp -r schemas "$extDir/"
 
-              runHook postInstall
+            glib-compile-schemas "$extDir/schemas"
+
+            runHook postInstall
             '';
 
-            meta = with pkgs.lib; {
-              description = "An elegant, pill-shaped music player for your GNOME desktop (GNOME ${gnomeVersions})";
-              homepage = "https://github.com/Andbal23/dynamic-music-pill";
-              license = licenses.gpl3Plus;
-              platforms = platforms.linux;
-            };
-          };
-      in
-      {
-        packages = {
-          # GNOME 45-49 (default)
-          default = mkExtension {
-            pname = "gnome-shell-extension-dynamic-music-pill";
-            src = ./.;
-            gnomeVersions = "45-49";
-          };
+                     meta = {
+            description = "An elegant, pill-shaped music player for GNOME Shell";
+            homepage = "https://github.com/Andbal23/dynamic-music-pill";
+            license = lib.licenses.gpl3Plus;
+            platforms = lib.platforms.linux;
+            maintainers = [ ];
 
-          # GNOME 50
-          gnome50 = mkExtension {
-            pname = "gnome-shell-extension-dynamic-music-pill-gnome50";
-            src = ./dynamic-music-pill-gnome50;
-            gnomeVersions = "50";
+
           };
         };
+                checks.default = self.packages.${system}.default;
       }
-    );
+    )
+    // {
+      overlays.default = final: prev: {
+        gnome-shell-extension-dynamic-music-pill =
+          self.packages.${final.system}.default;
+      };
+
+      nixosModules.default =
+        { config, lib, pkgs, ... }:
+        let
+          cfg = config.programs.dynamic-music-pill;
+        in
+        {
+          options.programs.dynamic-music-pill.enable =
+            lib.mkEnableOption "Dynamic Music Pill GNOME Shell extension";
+
+          config = lib.mkIf cfg.enable {
+            environment.systemPackages = [
+              self.packages.${pkgs.system}.default
+            ];
+          };
+        };
+    };
 }
