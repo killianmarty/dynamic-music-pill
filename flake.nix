@@ -21,10 +21,8 @@
         version =
           if self ? rev then
             self.rev
-          else if self ? dirtyRev then
-            self.dirtyRev
           else
-            "dirty";
+            self.dirtyRev;
 
         mkExtension =
           {
