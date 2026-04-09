@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-09 15:50+0200\n"
-"PO-Revision-Date: 2026-03-25 00:09+0000\n"
+"PO-Revision-Date: 2026-04-09 14:23+0000\n"
 "Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/hu/>\n"
@@ -524,19 +524,19 @@ msgstr "Aktív lejátszók ikonjainak megjelenítése a felugró menü tetején"
 
 #: prefs.js:516
 msgid "Show Album Title"
-msgstr ""
+msgstr "Mutassa az album címét"
 
 #: prefs.js:517
 msgid "Display album name next to the artist (Artist • Album)"
-msgstr ""
+msgstr "Mutassa az album címét az előadó mellett (Előadó • Album)"
 
 #: prefs.js:525
 msgid "Show HH:MM:SS"
-msgstr ""
+msgstr "Mutassa HH:MM:SS"
 
 #: prefs.js:526
 msgid "Display hours in the time labels when media is longer than 60 minutes"
-msgstr ""
+msgstr "Jelenítse meg órában az időbélyeget ha a média hosszabb mint 60 perc"
 
 #: prefs.js:537
 msgid "Show Visualizer in Pop-up"
