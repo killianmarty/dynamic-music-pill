@@ -613,13 +613,13 @@ export const MusicPill = GObject.registerClass(
             let titlePx = Math.max(10, Math.floor(height * 0.33)); 
             let artistPx = Math.max(9, Math.floor(height * 0.26)); 
 
-            let fontSizeTitle = '15px';
-            let fontSizeArtist = '12px';
+            let fontSizeTitle = '11pt';
+            let fontSizeArtist = '9pt';
 
             if (this._inPanel) {
                 this._padY = 0;
-                fontSizeTitle = '13px';
-                fontSizeArtist = '11px';
+                fontSizeTitle = '10pt';
+                fontSizeArtist = '8pt';
             } else {
                 let rawPadY = Math.floor(height / 10);
                 this._padY = Math.max(2, Math.min(8, rawPadY));
