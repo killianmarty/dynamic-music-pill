@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-09 15:50+0200\n"
-"PO-Revision-Date: 2026-04-09 12:26+0000\n"
+"PO-Revision-Date: 2026-04-09 14:14+0000\n"
 "Last-Translator: gio <gioviantmele4@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/it/>\n"
@@ -252,7 +252,7 @@ msgstr "Anima titoli lunghi e nomi degli artisti"
 
 #: prefs.js:211
 msgid "Scroll Only on Hover"
-msgstr ""
+msgstr "Scorri solo se selezionato"
 
 #: prefs.js:212
 msgid "Text stays still until you hover the pill"
@@ -260,7 +260,7 @@ msgstr "Il testo rimane fermo fino a quando non selezioni la pillola"
 
 #: prefs.js:225
 msgid "Lyrics Display"
-msgstr ""
+msgstr "Mostra Testo"
 
 #: prefs.js:226
 msgid "Show real-time synchronized lyrics for current track."
@@ -420,7 +420,7 @@ msgstr ""
 
 #: prefs.js:391
 msgid "Rotation Speed"
-msgstr ""
+msgstr "Velocità di rotazione"
 
 #: prefs.js:392
 msgid "Adjust the vinyl spin speed (Lower is slower, Default: 10)"
@@ -568,7 +568,7 @@ msgstr ""
 
 #: prefs.js:585
 msgid "Enable Custom Buttons"
-msgstr ""
+msgstr "Abilità bottoni personalizzati"
 
 #: prefs.js:586
 msgid "Show additional action buttons next to Shuffle and Loop"

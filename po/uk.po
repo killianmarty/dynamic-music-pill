@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-09 15:50+0200\n"
-"PO-Revision-Date: 2026-03-06 02:09+0000\n"
-"Last-Translator: Олег Попов <postnozet@gmail.com>\n"
+"PO-Revision-Date: 2026-04-09 14:14+0000\n"
+"Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/uk/>\n"
 "Language: uk\n"
@@ -35,7 +35,7 @@ msgstr "Автоматично (розумне)"
 #: src/controller.js:1931 src/controller.js:1949 src/controller.js:1972
 #: src/controller.js:1998
 msgid "Not supported"
-msgstr ""
+msgstr "Не підтримується"
 
 #: src/uiExpandedPlayer.js:388
 msgid "First time? Check settings for custom buttons, scroll actions & more"
@@ -43,123 +43,123 @@ msgstr ""
 
 #: src/uiExpandedPlayer.js:675
 msgid "Unknown Title"
-msgstr ""
+msgstr "Невідома назва"
 
 #: src/uiExpandedPlayer.js:678
 msgid "Unknown Artist"
-msgstr ""
+msgstr "Невідомий виконавець"
 
 #: src/uiExpandedPlayer.js:1286
 msgid "Volume"
-msgstr ""
+msgstr "Гучність"
 
 #: src/uiExpandedPlayer.js:1290
 msgid "No audio stream available"
-msgstr ""
+msgstr "Немає доступного аудіо потоку"
 
 #: src/uiExpandedPlayer.js:1327 src/uiExpandedPlayer.js:1338
 msgid "Unmute"
-msgstr ""
+msgstr "Увімкнути звук"
 
 #: src/uiExpandedPlayer.js:1327 src/uiExpandedPlayer.js:1338
 msgid "Mute"
-msgstr ""
+msgstr "Заглушити"
 
 #: src/uiExpandedPlayer.js:1382
 msgid "Seek"
-msgstr ""
+msgstr "Пошук"
 
 #: src/uiExpandedPlayer.js:1386
 msgid "This player does not support seeking"
-msgstr ""
+msgstr "Цей плеєр не підтримує пошук"
 
 #: src/uiExpandedPlayer.js:1412
 msgid "Audio Output"
-msgstr ""
+msgstr "Пристрій відтворення"
 
 #: src/uiExpandedPlayer.js:1414
 msgid "Audio control unavailable"
-msgstr ""
+msgstr "Управління аудіо недоступне"
 
 #: src/uiExpandedPlayer.js:1417
 msgid "No output devices found"
-msgstr ""
+msgstr "Не знайдено пристроїв відтворення"
 
 #: src/uiExpandedPlayer.js:1420
 msgid "Unknown Device"
-msgstr ""
+msgstr "Невідомий пристрій"
 
 #: src/uiExpandedPlayer.js:1441 prefs.js:601
 msgid "Sleep Timer"
-msgstr ""
+msgstr "Таймер сну"
 
 #: src/uiExpandedPlayer.js:1441
 msgid "min left"
-msgstr ""
+msgstr "хв залишилось"
 
 #: src/uiExpandedPlayer.js:1444
 msgid "Cancel Timer"
-msgstr ""
+msgstr "Відмінити таймер"
 
 #: src/uiExpandedPlayer.js:1477
 msgid "Runs inside the shell — works on lock screen"
-msgstr ""
+msgstr "Працює всередині оболонки - показує на заблокованому екрані"
 
 #: src/uiExpandedPlayer.js:1482 prefs.js:602
 msgid "Playback Speed"
-msgstr ""
+msgstr "Швидкість відтворення"
 
 #: src/uiExpandedPlayer.js:1489
 msgid "This player does not support playback speed"
-msgstr ""
+msgstr "Цей плеєр не підтримує змінення швидкості відтворення"
 
 #: src/uiExpandedPlayer.js:1529
 msgid "Player must support MPRIS Rate"
-msgstr ""
+msgstr "Плеєр повинен підтримувати MPRIS Rate"
 
 #: src/uiExpandedPlayer.js:1529
 msgid "Not supported by this player"
-msgstr ""
+msgstr "Не підтримується цим плеєром"
 
 #: src/uiExpandedPlayer.js:1535
 msgid "Recently Played"
-msgstr ""
+msgstr "Нещодавно відтворені"
 
 #: src/uiExpandedPlayer.js:1537
 msgid "No history yet"
-msgstr ""
+msgstr "Ще немає історії"
 
 #: src/uiExpandedPlayer.js:1570
 msgid "Unknown"
-msgstr ""
+msgstr "Невідомий"
 
 #: src/uiExpandedPlayer.js:1625
 msgid "Clear History"
-msgstr ""
+msgstr "Очистити історію"
 
 #: src/uiMusicPill.js:701 src/uiMusicPill.js:1002
 msgid "No Media"
-msgstr ""
+msgstr "Відсутнє медіа"
 
 #: src/uiMusicPill.js:1003
 msgid "Waiting for playback..."
-msgstr ""
+msgstr "Очікування відтворення..."
 
 #: src/uiMusicPill.js:1216
 msgid "Loading..."
-msgstr ""
+msgstr "Завантаження..."
 
 #: src/uiPlayerSelector.js:122
 msgid "Select Media Player"
-msgstr ""
+msgstr "Вибери плеєр"
 
 #: src/uiPlayerSelector.js:133
 msgid "Auto (Smart Selection)"
-msgstr ""
+msgstr "Автоматично (розумна вибірка)"
 
 #: src/uiVisualizers.js:303
 msgid "Please install \"cava\" for real-time mode."
-msgstr ""
+msgstr "Будь ласка встанови \"cava\" для онлайн режиму"
 
 #: prefs.js:38
 msgid "Main Pill"
@@ -167,7 +167,7 @@ msgstr "Головна капсула"
 
 #: prefs.js:44
 msgid "General Settings"
-msgstr "Головні налаштування"
+msgstr "Основні налаштування"
 
 #: prefs.js:47
 msgid "Always ON"

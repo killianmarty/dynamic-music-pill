@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Dynamic Music Pill\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-09 15:50+0200\n"
-"PO-Revision-Date: 2026-03-25 00:09+0000\n"
+"PO-Revision-Date: 2026-04-09 14:14+0000\n"
 "Last-Translator: László András <laszlo2002andras@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/dynamic-music-"
 "pill/settings/es/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 
 #: src/controller.js:1394
 msgid "Unknown Player"
-msgstr ""
+msgstr "Reproductor desconocido"
 
 #: src/controller.js:1395
 msgid "No active media"
