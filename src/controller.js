@@ -1454,7 +1454,7 @@ export class MusicController {
                                             this._artCacheSet(cacheKey, currentArt);
                                             if (this._pill && this._pill._lastArtUrl !== currentArt && this._getActivePlayer()) {
                                                 GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                                                    this._pill.showFor(title, artist, currentArt, active.PlaybackStatus, active._busName, false, active);
+                                                    this._updateUI();
                                                     return GLib.SOURCE_REMOVE;
                                                 });
                                             }
