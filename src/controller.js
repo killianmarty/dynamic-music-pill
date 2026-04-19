@@ -1852,12 +1852,52 @@ export class MusicController {
         });
     }
 
-    changeVolume(up) {
+    _getAppStream(player = null) {
         let mixer = getMixerControl();
-        if (!mixer) return;
+        if (!mixer) return { stream: null, mixer: null };
 
-        let stream = mixer.get_default_sink();
-        if (!stream) return;
+        player = player || this._getActivePlayer();
+        if (player) {
+            let sinkInputs = typeof mixer.get_streams === 'function' ? mixer.get_streams() : [];
+            let busName = (player._busName || '').replace('org.mpris.MediaPlayer2.', '').split('.')[0].toLowerCase();
+            let identity = (player._identity || '').toLowerCase();
+            let desktopEntry = (player._desktopEntry || '').toLowerCase();
+
+            for (let input of sinkInputs) {
+                let streamName = '';
+                let streamDesc = '';
+                let streamAppName = '';
+                try { streamName = input.name || ''; } catch(e) {}
+                try { streamDesc = input.description || ''; } catch(e) {}
+                try { streamAppName = input.application_id || ''; } catch(e) {}
+
+                // Try getters if properties failed
+                if (!streamName) try { streamName = input.get_name() || ''; } catch(e) {}
+                if (!streamDesc) try { streamDesc = input.get_description() || ''; } catch(e) {}
+                if (!streamAppName) try { streamAppName = input.get_application_id() || ''; } catch(e) {}
+
+                console.debug(`[Dynamic Music Pill] Found Stream: name="${streamName}", desc="${streamDesc}", app="${streamAppName}", looking for bus="${busName}", id="${identity}", desktop="${desktopEntry}"`);
+
+                streamName = streamName.toLowerCase();
+                streamDesc = streamDesc.toLowerCase();
+                streamAppName = streamAppName.toLowerCase();
+
+                if ((busName && (streamName.includes(busName) || streamDesc.includes(busName) || streamAppName.includes(busName))) ||
+                    (identity && (streamName.includes(identity) || streamDesc.includes(identity))) ||
+                    (desktopEntry && (streamName.includes(desktopEntry) || streamDesc.includes(desktopEntry)))) {
+                    console.debug('[Dynamic Music Pill] -> Matched app stream!');
+                    return { stream: input, mixer };
+                }
+            }
+        }
+
+        let fallback = mixer.get_default_sink();
+        return { stream: fallback, mixer };
+    }
+
+    changeVolume(up) {
+        let { stream, mixer } = this._getAppStream();
+        if (!stream || !mixer) return;
 
         let maxVolume = mixer.get_vol_max_norm();
         let step = Math.round(maxVolume * 0.05);

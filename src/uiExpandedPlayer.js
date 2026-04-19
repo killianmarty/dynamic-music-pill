@@ -1285,96 +1285,138 @@ export const ExpandedPlayer = GObject.registerClass(
         _showVolumePopup() {
             this._pushPage(_('Volume'), 'audio-volume-high-symbolic', (contentBox, tc, ta, subpage) => {
                 let mixer = getMixerControl();
-                let stream = mixer ? mixer.get_default_sink() : null;
                 let maxVol = mixer ? mixer.get_vol_max_norm() : 65536;
-                if (!stream) { contentBox.add_child(new St.Label({ text: _('No audio stream available'), style: `color:${ta};` })); return; }
-                let frac0 = stream.is_muted ? 0 : Math.min(1, stream.volume / maxVol);
 
-                let sliderRow = new St.BoxLayout({ vertical: false, style: 'spacing: 10px;', x_expand: true });
-                let sliderBg = new St.Widget({ style: `background-color:rgba(128,128,128,0.25);border-radius:5px;`, x_expand: true, y_align: Clutter.ActorAlign.CENTER, reactive: true, height: 10 });
-                let sliderFill = new St.Widget({ style: `background-color:${tc};border-radius:5px;`, height: 10, reactive: false });
-                sliderFill.set_position(0, 0);
-                sliderBg.add_child(sliderFill);
-                let volLabel = new St.Label({ text: `${Math.round(frac0 * 100)}%`, style: `color:${ta};min-width:38px;text-align:right;`, y_align: Clutter.ActorAlign.CENTER });
-
-                const upd = (f) => { f = Math.max(0, Math.min(1, f)); if (!sliderBg.has_allocation || !sliderBg.has_allocation()) { volLabel.text = `${Math.round(f * 100)}%`; return; } let w = sliderBg.get_width(); if (w > 0) sliderFill.width = Math.round(w * f); volLabel.text = `${Math.round(f * 100)}%`; };
-                const applyVol = (f) => { f = Math.max(0, Math.min(1, f)); stream.volume = Math.round(f * maxVol); stream.push_volume(); if (stream.is_muted && f > 0) stream.change_is_muted(false); };
-
-                // Throttle volume changes during drag to prevent audio crackling
-                let _lastApplyTime = 0;
-                let _lastDragFrac = 0;
-                const applyVolThrottled = (f) => {
-                    _lastDragFrac = f;
-                    let now = Date.now();
-                    if (now - _lastApplyTime < 30) return;
-                    _lastApplyTime = now;
-                    applyVol(f);
-                };
-
-                const drag = (ev) => {
-                    let [ex, ey] = ev.get_coords();
-                    let [ok, relX, relY] = sliderBg.transform_stage_point(ex, ey);
-                    if (ok) {
-                        let sw = sliderBg.get_width();
-                        if (sw <= 0) return;
-                        let f = Math.max(0, Math.min(1, relX / sw));
-                        upd(f);
-                        applyVolThrottled(f);
+                let streamsToShow = [];
+                if (mixer) {
+                    let masterStream = mixer.get_default_sink();
+                    if (masterStream) {
+                        streamsToShow.push({ stream: masterStream, title: _('System Volume'), isMaster: true });
                     }
-                };
+                }
 
-                let muteBtn = new St.Button({
-                    label: stream.is_muted ? _('Unmute') : _('Mute'),
-                    reactive: true, can_focus: true, x_expand: true,
-                    style: `border-radius:12px;padding:9px 12px;margin-top:4px;background-color:rgba(128,128,128,0.18);color:${tc};`
-                });
-                _addBtnPressAnim(muteBtn);
+                let addedStreamIds = new Set();
+                if (streamsToShow.length > 0) addedStreamIds.add(streamsToShow[0].stream.id || streamsToShow[0].stream);
 
-                const syncFromStream = () => {
-                    if (!sliderBg.get_parent()) return;
-                    if (sliderBg._drag) return; // Don't sync from stream while dragging
-                    let f = stream.is_muted ? 0 : Math.min(1, stream.volume / maxVol);
-                    upd(f);
-                    muteBtn.label = stream.is_muted ? _('Unmute') : _('Mute');
-                };
+                let proxies = Array.from(this._controller._proxies.values());
+                for (let p of proxies) {
+                    let { stream } = this._controller._getAppStream(p);
+                    if (stream && !addedStreamIds.has(stream.id || stream)) {
+                        addedStreamIds.add(stream.id || stream);
+                        let name = p._identity || _('Player');
+                        streamsToShow.push({ stream, title: name, isMaster: false });
+                    }
+                }
 
-                stream.connectObject('notify::volume', syncFromStream, subpage);
-                stream.connectObject('notify::is-muted', syncFromStream, subpage);
+                if (streamsToShow.length === 0) {
+                    contentBox.add_child(new St.Label({ text: _('No audio stream available'), style: `color:${ta};` }));
+                    return;
+                }
 
-                sliderBg.connectObject('button-press-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = true; drag(e); return Clutter.EVENT_STOP; }, subpage);
-                sliderBg.connectObject('button-release-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = false; applyVol(_lastDragFrac); return Clutter.EVENT_STOP; }, subpage);
-                sliderBg.connectObject('motion-event', (a, e) => { if (sliderBg._drag) drag(e); return Clutter.EVENT_STOP; }, subpage);
+                let allSliders = [];
+
+                for (let item of streamsToShow) {
+                    let { stream, title, isMaster } = item;
+                    let wrapper = new St.BoxLayout({ vertical: true, style: 'margin-bottom: 12px;' });
+                    
+                    let titleBox = new St.BoxLayout({ vertical: false, style: 'margin-bottom: 6px;', x_align: Clutter.ActorAlign.START });
+                    titleBox.add_child(new St.Icon({ icon_name: isMaster ? 'audio-speakers-symbolic' : 'audio-x-generic-symbolic', icon_size: 14, style: `color:${ta};margin-right:6px;`, y_align: Clutter.ActorAlign.CENTER }));
+                    titleBox.add_child(new St.Label({ text: title, style: `color:${ta};font-size:9pt;font-weight:bold;`, y_align: Clutter.ActorAlign.CENTER }));
+                    wrapper.add_child(titleBox);
+
+                    let frac0 = stream.is_muted ? 0 : Math.min(1, stream.volume / maxVol);
+                    let sliderRow = new St.BoxLayout({ vertical: false, style: 'spacing: 10px;', x_expand: true });
+                    let sliderBg = new St.Widget({ style: `background-color:rgba(128,128,128,0.25);border-radius:5px;`, x_expand: true, y_align: Clutter.ActorAlign.CENTER, reactive: true, height: 10 });
+                    let sliderFill = new St.Widget({ style: `background-color:${tc};border-radius:5px;`, height: 10, reactive: false });
+                    sliderFill.set_position(0, 0);
+                    sliderBg.add_child(sliderFill);
+                    let volLabel = new St.Label({ text: `${Math.round(frac0 * 100)}%`, style: `color:${tc};min-width:38px;text-align:right;`, y_align: Clutter.ActorAlign.CENTER });
+
+                    const upd = (f) => { f = Math.max(0, Math.min(1, f)); if (!sliderBg.has_allocation || !sliderBg.has_allocation()) { volLabel.text = `${Math.round(f * 100)}%`; return; } let w = sliderBg.get_width(); if (w > 0) sliderFill.width = Math.round(w * f); volLabel.text = `${Math.round(f * 100)}%`; };
+                    const applyVol = (f) => { f = Math.max(0, Math.min(1, f)); stream.volume = Math.round(f * maxVol); stream.push_volume(); if (stream.is_muted && f > 0) stream.change_is_muted(false); };
+
+                    let _lastApplyTime = 0;
+                    const applyVolThrottled = (f) => {
+                        sliderBg._dragFrac = f;
+                        let now = Date.now();
+                        if (now - _lastApplyTime < 30) return;
+                        _lastApplyTime = now;
+                        applyVol(f);
+                    };
+
+                    const drag = (ev) => {
+                        let [ex, ey] = ev.get_coords();
+                        let [ok, relX, relY] = sliderBg.transform_stage_point(ex, ey);
+                        if (ok) {
+                            let sw = sliderBg.get_width();
+                            if (sw <= 0) return;
+                            let f = Math.max(0, Math.min(1, relX / sw));
+                            upd(f);
+                            applyVolThrottled(f);
+                        }
+                    };
+
+                    const syncFromStream = () => {
+                        if (!sliderBg.get_parent()) return;
+                        if (sliderBg._drag) return;
+                        let f = stream.is_muted ? 0 : Math.min(1, stream.volume / maxVol);
+                        upd(f);
+                    };
+
+                    stream.connectObject('notify::volume', syncFromStream, subpage);
+                    stream.connectObject('notify::is-muted', syncFromStream, subpage);
+
+                    sliderBg.connectObject('button-press-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = true; sliderBg._dragFrac = stream.is_muted ? 0 : Math.min(1, stream.volume / maxVol); drag(e); return Clutter.EVENT_STOP; }, subpage);
+                    sliderBg.connectObject('button-release-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; sliderBg._drag = false; applyVol(sliderBg._dragFrac || 0); return Clutter.EVENT_STOP; }, subpage);
+                    sliderBg.connectObject('motion-event', (a, e) => { if (sliderBg._drag) drag(e); return Clutter.EVENT_STOP; }, subpage);
+                    sliderBg.connectObject('touch-event', (a, e) => { let t = e.type(); if (t === Clutter.EventType.TOUCH_BEGIN || t === Clutter.EventType.TOUCH_UPDATE) { drag(e); return Clutter.EVENT_STOP; } if (t === Clutter.EventType.TOUCH_END) { applyVol(sliderBg._dragFrac || 0); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
+
+                    sliderRow.add_child(sliderBg);
+                    sliderRow.add_child(volLabel);
+                    wrapper.add_child(sliderRow);
+
+                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        if (!sliderBg.get_parent() || !subpage.get_parent()) return GLib.SOURCE_REMOVE;
+                        if (sliderBg.has_allocation && sliderBg.has_allocation() && sliderBg.get_width() > 0) {
+                            upd(frac0);
+                            return GLib.SOURCE_REMOVE;
+                        }
+                        return GLib.SOURCE_CONTINUE;
+                    });
+
+                    allSliders.push({ sliderBg, drag, applyVol });
+                    contentBox.add_child(wrapper);
+                }
 
                 global.stage.connectObject('captured-event', (stage, ev) => {
                     let t = ev.type();
                     if (t === Clutter.EventType.MOTION) {
-                        if (sliderBg._drag) drag(ev);
+                        for (let s of allSliders) if (s.sliderBg._drag) s.drag(ev);
                     } else if (t === Clutter.EventType.BUTTON_RELEASE) {
-                        if (sliderBg._drag) { sliderBg._drag = false; applyVol(_lastDragFrac); }
+                        for (let s of allSliders) {
+                            if (s.sliderBg._drag) { s.sliderBg._drag = false; s.applyVol(s.sliderBg._dragFrac || 0); }
+                        }
                     }
                     return Clutter.EVENT_PROPAGATE;
                 }, subpage);
-                sliderBg.connectObject('touch-event', (a, e) => { let t = e.type(); if (t === Clutter.EventType.TOUCH_BEGIN || t === Clutter.EventType.TOUCH_UPDATE) { drag(e); return Clutter.EVENT_STOP; } if (t === Clutter.EventType.TOUCH_END) { applyVol(_lastDragFrac); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
 
-                sliderRow.add_child(sliderBg);
-                sliderRow.add_child(volLabel);
-                contentBox.add_child(sliderRow);
-
-                const doMute = () => { stream.change_is_muted(!stream.is_muted); };
-                muteBtn.connectObject('button-press-event', () => Clutter.EVENT_STOP, subpage);
-                muteBtn.connectObject('button-release-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; doMute(); return Clutter.EVENT_STOP; }, subpage);
-                muteBtn.connectObject('touch-event', (a, e) => { if (e.type() === Clutter.EventType.TOUCH_END) { doMute(); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
-                contentBox.add_child(muteBtn);
-
-                // Defer initial fill render to avoid allocation warnings
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    if (!sliderBg.get_parent() || !subpage.get_parent()) return GLib.SOURCE_REMOVE;
-                    if (sliderBg.has_allocation && sliderBg.has_allocation() && sliderBg.get_width() > 0) {
-                        upd(frac0);
-                        return GLib.SOURCE_REMOVE;
-                    }
-                    return GLib.SOURCE_CONTINUE;
+                let muteAllBtn = new St.Button({
+                    label: _('Toggle Mute All'),
+                    reactive: true, can_focus: true, x_expand: true,
+                    style: `border-radius:12px;padding:9px 12px;margin-top:4px;background-color:rgba(128,128,128,0.18);color:${tc};`
                 });
+                _addBtnPressAnim(muteAllBtn);
+                const doMuteAll = () => {
+                    let anyUnmuted = streamsToShow.some(item => !item.stream.is_muted);
+                    for (let item of streamsToShow) {
+                        item.stream.change_is_muted(anyUnmuted);
+                    }
+                };
+                muteAllBtn.connectObject('button-press-event', () => Clutter.EVENT_STOP, subpage);
+                muteAllBtn.connectObject('button-release-event', (a, e) => { if (e.get_button() === 8) return Clutter.EVENT_PROPAGATE; doMuteAll(); return Clutter.EVENT_STOP; }, subpage);
+                muteAllBtn.connectObject('touch-event', (a, e) => { if (e.type() === Clutter.EventType.TOUCH_END) { doMuteAll(); return Clutter.EVENT_STOP; } return Clutter.EVENT_PROPAGATE; }, subpage);
+                contentBox.add_child(muteAllBtn);
+
             });
         }
 
