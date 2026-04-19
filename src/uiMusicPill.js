@@ -1004,6 +1004,10 @@ export const MusicPill = GObject.registerClass(
 
                     this._targetColor = { r: 40, g: 40, b: 40 };
                     this._lastArtUrl = null;
+
+                    if (this._interfaceSettings && this._settings.get_boolean('sync-accent-color')) {
+                        try { this._interfaceSettings.set_string('accent-color', this._originalAccent || 'blue'); } catch (e) { }
+                    }
                 }
 
                 if (this._titleScroll) this._titleScroll.setText(tempTitle || '', true, 0);
@@ -1086,6 +1090,10 @@ export const MusicPill = GObject.registerClass(
                         this._isActiveState = false;
                         this.reactive = false;
 
+                        if (this._interfaceSettings && this._settings.get_boolean('sync-accent-color')) {
+                            try { this._interfaceSettings.set_string('accent-color', this._originalAccent || 'blue'); } catch (e) { }
+                        }
+
                         let targetW = this._isSidePanel ? this._body.width : 0;
                         let targetH = this._isSidePanel ? 0 : this._body.height;
 
@@ -1127,6 +1135,10 @@ export const MusicPill = GObject.registerClass(
             this._updateTextDisplay(forceUpdate);
 
             if (!this._isActiveState || this.opacity === 0 || this.width <= 1) {
+                if (this._interfaceSettings && this._settings.get_boolean('sync-accent-color')) {
+                    try { this._originalAccent = this._interfaceSettings.get_string('accent-color'); } catch (e) { }
+                }
+
                 this._isActiveState = true;
                 this.reactive = true;
                 this.visible = true;
