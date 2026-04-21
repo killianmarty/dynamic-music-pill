@@ -145,12 +145,14 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         const scrollActionModel = new Gtk.StringList();
         scrollActionModel.append(_("Change Track"));
         scrollActionModel.append(_("Change Volume"));
-        scrollActionModel.append(_("Switch Player")); 
+        scrollActionModel.append(_("Switch Player"));
+        scrollActionModel.append(_("Seek ±10s")); 
 
         let currentAction = settings.get_string('scroll-action');
         let selectedIdx = 0;
         if (currentAction === 'volume') selectedIdx = 1;
         else if (currentAction === 'player') selectedIdx = 2;
+        else if (currentAction === 'seek') selectedIdx = 3;
 
         const scrollActionRow = new Adw.ComboRow({
             title: _('Scroll Action'),
@@ -163,6 +165,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             const action = settings.get_string('scroll-action');
             if (action === 'volume') scrollActionRow.selected = 1;
             else if (action === 'player') scrollActionRow.selected = 2;
+            else if (action === 'seek') scrollActionRow.selected = 3;
             else scrollActionRow.selected = 0;
         });
 
@@ -170,6 +173,7 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
             let val = 'track';
             if (scrollActionRow.selected === 1) val = 'volume';
             else if (scrollActionRow.selected === 2) val = 'player';
+            else if (scrollActionRow.selected === 3) val = 'seek';
             settings.set_string('scroll-action', val);
         });
 

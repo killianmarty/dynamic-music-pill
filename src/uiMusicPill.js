@@ -265,7 +265,7 @@ export const MusicPill = GObject.registerClass(
                     if (shouldNext || shouldPrev) {
                         let now = Date.now();
                         let action = this._settings.get_string('scroll-action');
-                        let delayLimit = (action === 'volume') ? 50 : 500;
+                        let delayLimit = (action === 'volume') ? 50 : (action === 'seek') ? 200 : 500;
 
                         if (now - this._lastScrollTime < delayLimit) return Clutter.EVENT_STOP;
                         this._lastScrollTime = now;
@@ -277,11 +277,13 @@ export const MusicPill = GObject.registerClass(
                             this._animateSlide(invert ? -offset : offset);
                             if (action === 'volume') this._controller.changeVolume(true);
                             else if (action === 'player') this._controller.switchPlayer(true);
+                            else if (action === 'seek') this._controller.seekStep(true);
                             else this._controller.next();
                         } else {
                             this._animateSlide(invert ? offset : -offset);
                             if (action === 'volume') this._controller.changeVolume(false);
                             else if (action === 'player') this._controller.switchPlayer(false);
+                            else if (action === 'seek') this._controller.seekStep(false);
                             else this._controller.previous();
                         }
                     }

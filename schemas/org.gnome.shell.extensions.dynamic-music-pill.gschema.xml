@@ -20,7 +20,7 @@
     <key name="scroll-action" type="s">
       <default>'track'</default>
       <summary>Scroll Action</summary>
-      <description>What to do when scrolling (track or volume)</description>
+      <description>What to do when scrolling (track, volume, player, or seek)</description>
     </key>
 	<key name="hide-text" type="b">
 	<default>false</default>
