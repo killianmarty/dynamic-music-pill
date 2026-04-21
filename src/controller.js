@@ -1147,15 +1147,17 @@ export class MusicController {
         let length = smartUnpack(metaObj['mpris:length']) || 0;
 
         if (Array.isArray(artist)) artist = artist.join(', ');
-        if (!title) return;
+        if (!title || !title.trim()) return;
+        if (!artist || !artist.trim()) return;
+
+        let durationSec = length > 0 ? length / 1000000 : 0;
+        if (durationSec <= 0) return;
 
         let trackKey = `${title}||${artist}`;
 
         this._fetchedTrackKey = trackKey;
         this._fetchedLyricsData = null;
         this._lastLyricIndex = -1;
-
-        let durationSec = length > 0 ? length / 1000000 : 0;
 
         try {
             let lyrics = await this._lyricsClient.getLyrics(title, artist, album, durationSec, this._settings);
@@ -1490,13 +1492,13 @@ export class MusicController {
                         if (httpCachedFile.query_exists(null)) {
                             artUrl = httpCachedFile.get_uri();
                             this._artCacheSet(cacheKey, artUrl);
-                        } else {
+                        } else if (currentArt.startsWith('http://') || currentArt.startsWith('https://')) {
                             artUrl = (this._pill && this._pill._lastArtUrl) ? this._pill._lastArtUrl : null;
 
                             try {
                                 let session = new Soup.Session();
-                                let uri = GLib.Uri.parse(currentArt, GLib.UriFlags.NONE);
-                                let message = new Soup.Message({ method: 'GET', uri });
+                                let message = Soup.Message.new('GET', currentArt);
+                                if (!message) throw new Error('Invalid URI for Soup');
                                 session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (s, res) => {
                                     try {
                                         let bytes = s.send_and_read_finish(res);
@@ -1530,6 +1532,10 @@ export class MusicController {
                                 this._artCacheSet(cacheKey, currentArt);
                                 artUrl = currentArt;
                             }
+                        } else {
+                            // Do not attempt to download unknown schemes like data:
+                            this._artCacheSet(cacheKey, currentArt);
+                            artUrl = currentArt;
                         }
                     }
                 }

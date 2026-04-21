@@ -46,11 +46,15 @@ export class LyricsClient {
 
   async getLyrics(title, artist, album, duration, settings) {
     if (!this._session) return null;
+    if (!title?.trim() && !artist?.trim()) return null;
+    if (!duration || duration <= 0) return null;
     const pref = settings ? settings.get_int('lyrics-language-preference') : 0;
 
     try {
-      const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}&album_name=${encodeURIComponent(album)}&duration=${duration}`;
-      const msg = Soup.Message.new("GET", url);
+      const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(title || '')}&artist_name=${encodeURIComponent(artist || '')}&album_name=${encodeURIComponent(album || '')}&duration=${duration}`;
+      let msg;
+      try { msg = Soup.Message.new("GET", url); } catch (_e) { return null; }
+      if (!msg) return null;
       const bytes = await this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null);
 
       let exactItem = null;
@@ -91,9 +95,12 @@ export class LyricsClient {
 
   async _fetchCandidates(title, artist, duration) {
     if (!this._session) return [];
+    if (!title?.trim()) return [];
     try {
-      const url = `https://lrclib.net/api/search?q=${encodeURIComponent(title + " " + artist)}`;
-      const msg = Soup.Message.new("GET", url);
+      const url = `https://lrclib.net/api/search?q=${encodeURIComponent((title || '') + " " + (artist || ''))}`;
+      let msg;
+      try { msg = Soup.Message.new("GET", url); } catch (_e) { return []; }
+      if (!msg) return [];
       const bytes = await this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null);
       const data = JSON.parse(decode(bytes.get_data()));
       return Array.isArray(data)
