@@ -1487,10 +1487,22 @@ export default class DynamicMusicPrefs extends ExtensionPreferences {
         });
 
         const changelog = [
+                    {
+                        version: "1.1.0 - Latest Update",
+                        subtitle: "Custom Buttons & Bug Fixes",
+                        expanded: true,
+                        notes: "✨ New Features:\n" +
+                               "• Add a 'Scroll Action' mode to fast-forward.\n" +
+                               "• Per-App Volume Control.\n" +
+        					   "• Resotre original GNOME accent color after player is closed.\n\n" +
+                               "• Bug Fixes:\n" +
+        					   "• Lyrics view crash fix.\n" +
+                               "• Telegram crash fix."
+                    },
         	{
-                version: "1.0.0 - Latest Update",
+                version: "1.0.0",
                 subtitle: "Custom Buttons & Bug Fixes",
-                expanded: true,
+                expanded: false,
                 notes: "✨ New Features:\n" +
                        "• Custom Control Buttons: Add up to two extra buttons to the pop-up controls row. Each can be assigned to Volume, Seek Step, Audio Output, Sleep Timer, Playback Speed, or Recently Played history.\n" +
                        "• First-Time Hint: A one-time tip in the pop-up suggests checking settings for more options (custom buttons, scroll actions, etc.). Dismissible with a click or via the settings button.\n" +
