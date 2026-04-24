@@ -8,59 +8,63 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-09 15:50+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2026-04-25 10:09+0000\n"
+"Last-Translator: Yiğithan Karabel <yigithankarabel@gmail.com>\n"
+"Language-Team: Turkish <https://hosted.weblate.org/projects/dynamic-music-"
+"pill/settings/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.17.1-dev\n"
 
 #: src/controller.js:1394
 msgid "Unknown Player"
-msgstr ""
+msgstr "Bilinmeyen Oynatıcı"
 
 #: src/controller.js:1395
 msgid "No active media"
-msgstr ""
+msgstr "Etkin medya yok"
 
 #: src/controller.js:1911
 msgid "Auto (Smart)"
-msgstr ""
+msgstr "Otomatik (Akıllı)"
 
 #: src/controller.js:1931 src/controller.js:1949 src/controller.js:1972
 #: src/controller.js:1998
 msgid "Not supported"
-msgstr ""
+msgstr "Desteklenmiyor"
 
 #: src/uiExpandedPlayer.js:388
 msgid "First time? Check settings for custom buttons, scroll actions & more"
 msgstr ""
+"İlk defa mı kullanıyorsunuz? Özel düğmeler, kaydırma işlemleri ve dahası "
+"için ayarları kontrol edin"
 
 #: src/uiExpandedPlayer.js:675
 msgid "Unknown Title"
-msgstr ""
+msgstr "Bilinmeyen Başlık"
 
 #: src/uiExpandedPlayer.js:678
 msgid "Unknown Artist"
-msgstr ""
+msgstr "Bilinmeyen Sanatçı"
 
 #: src/uiExpandedPlayer.js:1286
 msgid "Volume"
-msgstr ""
+msgstr "Ses"
 
 #: src/uiExpandedPlayer.js:1290
 msgid "No audio stream available"
-msgstr ""
+msgstr "Ses akışı mevcut değil"
 
 #: src/uiExpandedPlayer.js:1327 src/uiExpandedPlayer.js:1338
 msgid "Unmute"
-msgstr ""
+msgstr "Sesi aç"
 
 #: src/uiExpandedPlayer.js:1327 src/uiExpandedPlayer.js:1338
 msgid "Mute"
-msgstr ""
+msgstr "Sesi kapat"
 
 #: src/uiExpandedPlayer.js:1382
 msgid "Seek"
@@ -72,43 +76,43 @@ msgstr ""
 
 #: src/uiExpandedPlayer.js:1412
 msgid "Audio Output"
-msgstr ""
+msgstr "Ses Çıkışı"
 
 #: src/uiExpandedPlayer.js:1414
 msgid "Audio control unavailable"
-msgstr ""
+msgstr "Ses kontrolü kullanılamıyor"
 
 #: src/uiExpandedPlayer.js:1417
 msgid "No output devices found"
-msgstr ""
+msgstr "Çıkış aygıtı bulunamadı"
 
 #: src/uiExpandedPlayer.js:1420
 msgid "Unknown Device"
-msgstr ""
+msgstr "Bilinmeyen Aygıt"
 
 #: src/uiExpandedPlayer.js:1441 prefs.js:601
 msgid "Sleep Timer"
-msgstr ""
+msgstr "Uyku Zamanlayıcısı"
 
 #: src/uiExpandedPlayer.js:1441
 msgid "min left"
-msgstr ""
+msgstr "dakika kaldı"
 
 #: src/uiExpandedPlayer.js:1444
 msgid "Cancel Timer"
-msgstr ""
+msgstr "Zamanlayıcıyı İptal Et"
 
 #: src/uiExpandedPlayer.js:1477
 msgid "Runs inside the shell — works on lock screen"
-msgstr ""
+msgstr "Kabuk içinde çalışır — kilit ekranında çalışır"
 
 #: src/uiExpandedPlayer.js:1482 prefs.js:602
 msgid "Playback Speed"
-msgstr ""
+msgstr "Oynatma Hızı"
 
 #: src/uiExpandedPlayer.js:1489
 msgid "This player does not support playback speed"
-msgstr ""
+msgstr "Bu oynatıcı oynatma hızını desteklemiyor"
 
 #: src/uiExpandedPlayer.js:1529
 msgid "Player must support MPRIS Rate"
@@ -116,27 +120,27 @@ msgstr ""
 
 #: src/uiExpandedPlayer.js:1529
 msgid "Not supported by this player"
-msgstr ""
+msgstr "Bu oynatıcı tarafından desteklenmiyor"
 
 #: src/uiExpandedPlayer.js:1535
 msgid "Recently Played"
-msgstr ""
+msgstr "Son Çalan"
 
 #: src/uiExpandedPlayer.js:1537
 msgid "No history yet"
-msgstr ""
+msgstr "Henüz geçmiş yok"
 
 #: src/uiExpandedPlayer.js:1570
 msgid "Unknown"
-msgstr ""
+msgstr "Bilinmeyen"
 
 #: src/uiExpandedPlayer.js:1625
 msgid "Clear History"
-msgstr ""
+msgstr "Geçmişi Temizle"
 
 #: src/uiMusicPill.js:701 src/uiMusicPill.js:1002
 msgid "No Media"
-msgstr ""
+msgstr "Medya Yok"
 
 #: src/uiMusicPill.js:1003
 msgid "Waiting for playback..."
@@ -144,19 +148,19 @@ msgstr ""
 
 #: src/uiMusicPill.js:1216
 msgid "Loading..."
-msgstr ""
+msgstr "Yükleniyor..."
 
 #: src/uiPlayerSelector.js:122
 msgid "Select Media Player"
-msgstr ""
+msgstr "Medya Oynatıcıyı Seç"
 
 #: src/uiPlayerSelector.js:133
 msgid "Auto (Smart Selection)"
-msgstr ""
+msgstr "Otomatik (Akıllı Seçim)"
 
 #: src/uiVisualizers.js:303
 msgid "Please install \"cava\" for real-time mode."
-msgstr ""
+msgstr "Lütfen gerçek zamanlı mod için \"cava\"yı yükleyin."
 
 #: prefs.js:38
 msgid "Main Pill"
