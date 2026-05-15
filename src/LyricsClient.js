@@ -53,8 +53,8 @@ export class LyricsClient {
     try {
       const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(title || '')}&artist_name=${encodeURIComponent(artist || '')}&album_name=${encodeURIComponent(album || '')}&duration=${duration}`;
       let msg;
-      try { msg = Soup.Message.new("GET", url); } catch (_e) { return null; }
-      if (!msg) return null;
+      try { msg = Soup.Message.new("GET", url); } catch (_e) { throw new Error('Failed to create request'); }
+      if (!msg) throw new Error('Failed to create request');
       const bytes = await this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null);
 
       let exactItem = null;
@@ -89,7 +89,7 @@ export class LyricsClient {
 
     } catch (e) {
       console.debug(`[Dynamic Music Pill] Lyrics fetch error: ${e.message}`);
-      return null;
+      throw e; // re-throw so caller can distinguish error from "no lyrics found"
     }
   }
 
@@ -99,8 +99,8 @@ export class LyricsClient {
     try {
       const url = `https://lrclib.net/api/search?q=${encodeURIComponent((title || '') + " " + (artist || ''))}`;
       let msg;
-      try { msg = Soup.Message.new("GET", url); } catch (_e) { return []; }
-      if (!msg) return [];
+      try { msg = Soup.Message.new("GET", url); } catch (_e) { throw new Error('Failed to create search request'); }
+      if (!msg) throw new Error('Failed to create search request');
       const bytes = await this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null);
       const data = JSON.parse(decode(bytes.get_data()));
       return Array.isArray(data)
@@ -108,7 +108,7 @@ export class LyricsClient {
         : [];
     } catch (e) {
       console.debug(`[Dynamic Music Pill] Lyrics search error: ${e.message}`);
-      return [];
+      throw e; // re-throw so caller can distinguish error from "no results"
     }
   }
 
