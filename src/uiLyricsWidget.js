@@ -116,6 +116,14 @@ export const LyricsWidget = GObject.registerClass(
             this.queue_repaint();
         }
 
+        vfunc_get_preferred_width(forHeight) {
+            return [100, 400];
+        }
+
+        vfunc_get_preferred_height(forWidth) {
+            return [100, 300];
+        }
+
         _fullReset(state) {
             this._state              = state;
             this._lyrics             = [];
