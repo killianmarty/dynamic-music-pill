@@ -83,6 +83,11 @@ export const LyricsWidget = GObject.registerClass(
             this.queue_repaint();
         }
 
+        showError() {
+            this._fullReset('error');
+            this.queue_repaint();
+        }
+
         setLyrics(lyrics) {
             if (!lyrics || lyrics.length === 0) { this.showEmpty(); return; }
             this._fullReset('lyrics');
@@ -449,7 +454,10 @@ export const LyricsWidget = GObject.registerClass(
             const R = this._fgR, G = this._fgG, B = this._fgB;
 
             if (this._state !== 'lyrics') {
-                let msg = this._state === 'loading' ? '♫  Fetching lyrics…' : 'No lyrics found';
+                let msg;
+                if (this._state === 'loading') msg = '♫  Fetching lyrics…';
+                else if (this._state === 'error') msg = '⚠  Could not fetch lyrics';
+                else msg = 'No lyrics found';
                 let layout = PangoCairo.create_layout(cr);
                 layout.set_alignment(Pango.Alignment.CENTER);
                 layout.set_font_description(

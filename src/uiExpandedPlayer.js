@@ -1202,7 +1202,7 @@ export const ExpandedPlayer = GObject.registerClass(
                     }).catch(() => {
                         if (page === this._currentSubPage && page.get_parent())
                             if (!lyricsWidget.is_finalized || !lyricsWidget.is_finalized())
-                                lyricsWidget.showEmpty();
+                                lyricsWidget.showError();
                     });
                 }
             }
