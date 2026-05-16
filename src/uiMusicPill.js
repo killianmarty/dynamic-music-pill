@@ -29,6 +29,7 @@ export const MusicPill = GObject.registerClass(
 
             this._fullscreenActive = false;
             this._fullscreenHideTimerId = null;
+            this._lastFocusWindow = null;
 
             this._lastScrollTime = 0;
             this._controller = controller;
@@ -551,60 +552,94 @@ export const MusicPill = GObject.registerClass(
 
         _onFullscreenChanged() {
             let mode = this._settings.get_int('autohide-mode');
-            if (mode === 0) {
+            if (mode === 0) { // Never hide
                 if (this._fullscreenActive) this._revealPill();
                 this._fullscreenActive = false;
+                this._lastFocusWindow = null;
                 return;
             }
 
             let monitor = Main.layoutManager.findMonitorForActor(this);
             if (!monitor) return;
 
+            let fw = global.display.get_focus_window();
+            let focusChanged = (fw !== this._lastFocusWindow);
+            this._lastFocusWindow = fw;
+
             let inFullscreen = false;
-            if (mode === 1) {
-                let fw = global.display.focus_window;
+            if (mode === 1) { // Current app
                 if (fw && fw.get_monitor() === monitor.index) {
-                    inFullscreen = fw.is_fullscreen() || fw.get_maximized() === 3;
+                    inFullscreen = (fw.is_fullscreen() || fw.get_maximized() === 3) && !fw.minimized;
                 }
-            } else {
+            } else { // Any app
                 let windows = global.get_window_actors().map(a => a.meta_window);
                 inFullscreen = windows.some(w => {
-                    if (!w || !w.is_on_all_workspaces() && w.get_workspace() !== global.workspace_manager.get_active_workspace()) {
-                        if (w && w.get_workspace() !== global.workspace_manager.get_active_workspace()) return false;
+                    if (!w) return false;
+                    if (!w.is_on_all_workspaces() && w.get_workspace() !== global.workspace_manager.get_active_workspace()) {
+                        if (w.get_workspace() !== global.workspace_manager.get_active_workspace()) return false;
                     }
-                    if (!w || w.get_monitor() !== monitor.index) return false;
-                    return w.is_fullscreen() || w.get_maximized() === 3;
+                    if (w.get_monitor() !== monitor.index) return false;
+                    return (w.is_fullscreen() || w.get_maximized() === 3) && !w.minimized;
                 });
             }
 
-            if (inFullscreen === this._fullscreenActive) return;
-            this._fullscreenActive = inFullscreen;
-
             if (inFullscreen) {
-                let delay = this._settings.get_int('autohide-delay');
-                this._startFullscreenHideTimer(delay);
+
+                if (!this._fullscreenActive || focusChanged) {
+                    this._fullscreenActive = true;
+                    this._showAndScheduleHide();
+                }
             } else {
-                this._revealPill();
+                if (this._fullscreenActive) {
+                    this._fullscreenActive = false;
+                    this._revealPill();
+                }
             }
         }
 
+        _showAndScheduleHide(customDelay = null) {
+            if (!this._isActiveState) return;
+            this._revealPill();
+            let delay = customDelay || Math.max(2000, this._settings.get_int('autohide-delay'));
+            this._startFullscreenHideTimer(delay);
+        }
+
         _startFullscreenHideTimer(delay) {
-            if (this._fullscreenHideTimerId) GLib.Source.remove(this._fullscreenHideTimerId);
+            if (this._fullscreenHideTimerId) {
+                GLib.Source.remove(this._fullscreenHideTimerId);
+                this._fullscreenHideTimerId = null;
+            }
+
+            if (!this._fullscreenActive) return;
+
             this._fullscreenHideTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
                 this._fullscreenHideTimerId = null;
-                if (this._fullscreenActive && !this.hover) {
-                    this._body.reactive = false;
-                    this.ease({
-                        opacity: 0,
-                        duration: 800,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                        onStopped: () => {
-                            this.visible = false;
-                            if (this._revealSensor) this._revealSensor.reactive = true;
-                        }
-                    });
+
+                if (this._fullscreenActive && !this._isHovered && !this._isPopupOpen) {
+                    this._hidePillAnimated();
                 }
                 return GLib.SOURCE_REMOVE;
+            });
+        }
+
+        _hidePillAnimated() {
+            this._body.reactive = false;
+            this.remove_transition('opacity');
+            this.ease({
+                opacity: 0,
+                duration: 800,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onStopped: (isFinished) => {
+                    if (!isFinished) return;
+
+                    if (this._fullscreenActive && !this._isHovered && !this._isPopupOpen) {
+                        this.visible = false;
+                        if (this._revealSensor) {
+                            this._revealSensor.reactive = true;
+                            this._updatePosition();
+                        }
+                    }
+                }
             });
         }
 
@@ -614,13 +649,23 @@ export const MusicPill = GObject.registerClass(
                 this._fullscreenHideTimerId = null;
             }
             if (this._revealSensor) this._revealSensor.reactive = false;
+            
+            if (!this._isActiveState) return;
+
             this.visible = true;
             this._body.reactive = true;
+            this.remove_transition('opacity');
             this.ease({
                 opacity: 255,
                 duration: 400,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD
             });
+
+
+            if (this._fullscreenActive) {
+                let delay = Math.max(3000, this._settings.get_int('autohide-delay'));
+                this._startFullscreenHideTimer(delay);
+            }
         }
 
         setGameMode(active) {
@@ -1207,8 +1252,7 @@ export const MusicPill = GObject.registerClass(
                     }
 
                     if (this._fullscreenActive) {
-                        let delay = Math.max(3000, this._settings.get_int('autohide-delay'));
-                        this._startFullscreenHideTimer(delay);
+                        this._showAndScheduleHide();
                     }
 
                     if (forceUpdate || artUrl !== this._lastArtUrl || titleChanged) {
@@ -1324,6 +1368,10 @@ export const MusicPill = GObject.registerClass(
                 this._body.ease({ width: finalWidth, height: finalHeight, duration: 500, mode: Clutter.AnimationMode.EASE_OUT_QUAD });
             } else {
                 this._updateDimensions();
+            }
+
+            if (this._fullscreenActive) {
+                this._showAndScheduleHide();
             }
 
             this._updatePlayingStates();
@@ -1492,9 +1540,12 @@ export const MusicPill = GObject.registerClass(
 
             if (this._settings.get_boolean('use-custom-colors')) {
                 let customBg = this._settings.get_string('custom-bg-color').split(',');
-                r = parseInt(customBg[0]) || 40;
-                g = parseInt(customBg[1]) || 40;
-                b = parseInt(customBg[2]) || 40;
+                let rVal = parseInt(customBg[0]);
+                r = (!isNaN(rVal)) ? rVal : 40;
+                let gVal = parseInt(customBg[1]);
+                g = (!isNaN(gVal)) ? gVal : 40;
+                let bVal = parseInt(customBg[2]);
+                b = (!isNaN(bVal)) ? bVal : 40;
             }
             if (!this._body || !this._body.get_parent()) return;
 

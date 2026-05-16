@@ -629,9 +629,12 @@ export const ExpandedPlayer = GObject.registerClass(
 
             if (this._settings.get_boolean('use-custom-colors') && this._settings.get_boolean('popup-follow-custom-bg')) {
                 let customBg = this._settings.get_string('custom-bg-color').split(',');
-                safeR = parseInt(customBg[0]) || 40;
-                safeG = parseInt(customBg[1]) || 40;
-                safeB = parseInt(customBg[2]) || 40;
+                let rVal = parseInt(customBg[0]);
+                safeR = (!isNaN(rVal)) ? rVal : 40;
+                let gVal = parseInt(customBg[1]);
+                safeG = (!isNaN(gVal)) ? gVal : 40;
+                let bVal = parseInt(customBg[2]);
+                safeB = (!isNaN(bVal)) ? bVal : 40;
             }
 
             let bgStyle = `background-color: rgba(${safeR}, ${safeG}, ${safeB}, ${finalAlpha});`;
@@ -659,9 +662,12 @@ export const ExpandedPlayer = GObject.registerClass(
 
             if (this._settings.get_boolean('use-custom-colors') && this._settings.get_boolean('popup-follow-custom-text')) {
                 let customTextStr = this._settings.get_string('custom-text-color').split(',');
-                fgR = parseInt(customTextStr[0]) || 255;
-                fgG = parseInt(customTextStr[1]) || 255;
-                fgB = parseInt(customTextStr[2]) || 255;
+                let rVal = parseInt(customTextStr[0]);
+                fgR = (!isNaN(rVal)) ? rVal : 255;
+                let gVal = parseInt(customTextStr[1]);
+                fgG = (!isNaN(gVal)) ? gVal : 255;
+                let bVal = parseInt(customTextStr[2]);
+                fgB = (!isNaN(bVal)) ? bVal : 255;
             } else {
                 let brightness = (safeR * 299 + safeG * 587 + safeB * 114) / 1000;
                 if (brightness > 160) {
@@ -1093,8 +1099,7 @@ export const ExpandedPlayer = GObject.registerClass(
                 x_align: Clutter.ActorAlign.FILL,
                 y_align: Clutter.ActorAlign.FILL,
                 clip_to_allocation: true,
-                style: `border-radius: 20px;
-                        background-color: rgba(${pillCol.r},${pillCol.g},${pillCol.b},0.07);`
+                style: `background-color: transparent;`
             });
             this._currentSubPage = page;
             page.translation_x = 28;
@@ -2090,7 +2095,7 @@ export const ExpandedPlayer = GObject.registerClass(
 
         animateResize() {
             if (!this._box || !this._controller || !this._controller._pill) return;
-            if (this._currentSubPage) return;
+            if (this._currentSubPage || this._isHiding) return;
             
             let animStyle = this._settings.get_int('popup-animation-style');
 

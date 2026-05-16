@@ -56,6 +56,10 @@ export const LyricsWidget = GObject.registerClass(
 
             this._fgR = 1; this._fgG = 1; this._fgB = 1;
 
+            this.connect('notify::allocation', () => {
+                this._geomBuilt = false;
+                this.queue_repaint();
+            });
             this.connect('repaint',              this._onRepaint.bind(this));
             this.connect('button-release-event', this._onClick.bind(this));
             this.connect('motion-event',         this._onMotion.bind(this));

@@ -551,7 +551,7 @@ export class MusicController {
 
         let win = global.display.get_focus_window();
         if (win && win.get_monitor() === Main.layoutManager.primaryIndex) {
-            if (win.is_fullscreen()) {
+            if (win.is_fullscreen() && !win.minimized) {
                 return true;
             }
         }
@@ -733,6 +733,7 @@ export class MusicController {
     }
 
     _setupDragFix(container) {
+        if (!container) return;
         const dash = container._delegate;
         if (!dash || typeof dash.handleDragOver !== 'function') return;
         if (dash._musicPillOrigHandleDragOver) return;
